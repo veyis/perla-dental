@@ -8,13 +8,18 @@ export async function POST(req: Request) {
   if (buffer.byteLength === 0) {
     return Response.json({ error: 'empty audio' }, { status: 400 })
   }
+  if (buffer.byteLength < 1024) {
+    return Response.json({ error: 'audio too short' }, { status: 400 })
+  }
   if (buffer.byteLength > 25 * 1024 * 1024) {
     return Response.json({ error: 'audio too large' }, { status: 413 })
   }
   try {
     const { text, language } = await transcribe(buffer, contentType)
     return Response.json({ text, language })
-  } catch {
-    return Response.json({ error: 'transcription failed' }, { status: 502 })
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err)
+    console.error('[/api/voice/stt] transcription failed:', message)
+    return Response.json({ error: 'transcription failed', detail: message }, { status: 502 })
   }
 }
