@@ -90,23 +90,24 @@ Two consequences of the swap that the user has accepted:
 
 ## 4. Files Changed
 
-### 4.1. Edits (4 files)
+### 4.1. Edits (3 files)
 
 | File | Change |
 |---|---|
 | `src/app/globals.css` | Replace five `--color-*` values per the table in §3 |
 | `src/components/hero.tsx:41` | Replace hardcoded `#1e5f74` in the inline `backgroundImage: 'radial-gradient(...)'` style with `var(--color-primary)` |
 | `src/components/navbar.tsx:14-19` | Replace the "P" placeholder div + "Perla Dental" wordmark span with a single `<Image src="/images/perla-logo.svg" alt="Perla Dental Clinics" width={140} height={32} priority />` |
-| `src/app/[locale]/layout.tsx` | No edit needed if we use Next.js `app/icon.png` convention; favicon is auto-discovered |
 
-### 4.2. Adds (3 assets)
+`src/app/[locale]/layout.tsx` is **not** edited — the favicon is set via the Next.js `src/app/icon.png` convention (auto-discovered by the framework, no `<link>` tag needed).
+
+### 4.2. Adds (4 files)
 
 | File | Source |
 |---|---|
 | `public/images/perla-logo.svg` | Vendored from live site (already copied during spec authoring) |
 | `public/images/perla-icon.png` | Vendored from live site (already copied) |
 | `public/images/perla-logo-white.png` | Vendored from live site, reserve asset (already copied) |
-| `src/app/icon.png` | Copy of `perla-icon.png` to enable Next.js auto-favicon |
+| `src/app/icon.png` | Copy of `perla-icon.png` so Next.js auto-serves it as the favicon |
 
 ### 4.3. No-touch list
 
@@ -164,10 +165,13 @@ After:
 
 After implementation:
 
-1. **Static checks** — zero matches:
+1. **Static checks** — old token hex codes are gone:
    ```bash
-   grep -rn "1e5f74\|c9a96e\|f8f4ec" src/  # expect zero
-   grep -rn "Perla Dental\b" src/components/navbar.tsx  # expect zero (replaced by SVG alt)
+   grep -rni "1e5f74\|c9a96e\|f8f4ec\|2d8ca8" src/  # expect zero matches
+   ```
+   And the navbar no longer uses the placeholder text wordmark:
+   ```bash
+   grep -n "font-heading text-xl font-semibold" src/components/navbar.tsx  # expect zero
    ```
 2. **Build clean** — `pnpm build` exits 0.
 3. **Tests green** — `pnpm test:run` passes (no test should depend on color values).
