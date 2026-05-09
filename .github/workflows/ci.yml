@@ -1,0 +1,65 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  lint-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm lint
+      - run: pnpm exec tsc --noEmit
+      - run: pnpm test:run
+
+  changes:
+    # Detects whether the PR / push touched the agent prompt or message
+    # catalogs. The `evals` job runs only when those areas changed, since
+    # promptfoo runs against a paid Anthropic API and we do not want to
+    # spend tokens on every formatting-only PR.
+    runs-on: ubuntu-latest
+    outputs:
+      agent_or_messages: ${{ steps.filter.outputs.agent_or_messages }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            agent_or_messages:
+              - 'src/lib/agent/**'
+              - 'messages/**'
+              - 'tests/evals/**'
+
+  evals:
+    needs: changes
+    if: ${{ needs.changes.outputs.agent_or_messages == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      # Requires the `ANTHROPIC_API_KEY` repo secret to be configured in
+      # repository Settings → Secrets and variables → Actions before this
+      # job will succeed. Without it, promptfoo will fail with an auth
+      # error. The job is intentionally gated by the `changes` filter so
+      # most PRs do not consume the secret budget.
+      - run: pnpm eval
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
