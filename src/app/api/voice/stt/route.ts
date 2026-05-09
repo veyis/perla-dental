@@ -7,7 +7,7 @@ export async function POST(req: Request) {
   const contentType = req.headers.get('content-type') ?? 'audio/webm'
   const buffer = await req.arrayBuffer()
   console.log('[/api/voice/stt] buffer size:', buffer.byteLength, 'content-type:', contentType)
-  
+
   if (buffer.byteLength === 0) {
     return Response.json({ error: 'empty audio' }, { status: 400 })
   }
@@ -17,7 +17,7 @@ export async function POST(req: Request) {
   if (buffer.byteLength > 25 * 1024 * 1024) {
     return Response.json({ error: 'audio too large' }, { status: 413 })
   }
-  
+
   try {
     const { text, language } = await transcribe(buffer, contentType)
     console.log('[/api/voice/stt] success:', { text, language })
@@ -26,9 +26,6 @@ export async function POST(req: Request) {
     const message = err instanceof Error ? err.message : String(err)
     const stack = err instanceof Error ? err.stack : undefined
     console.error('[/api/voice/stt] transcription failed:', { message, stack })
-    return Response.json(
-      { error: 'transcription failed', detail: message, stack }, 
-      { status: 502 }
-    )
+    return Response.json({ error: 'transcription failed', detail: message, stack }, { status: 502 })
   }
 }

@@ -28,6 +28,11 @@ export function useChatConversation(args: { locale: Locale; ttsEnabled: boolean 
   const transport = new DefaultChatTransport({
     api: '/api/chat',
     prepareSendMessagesRequest: ({ messages, body }) => {
+      // turnCount is the only non-derived state the server uses; step and
+      // captured fields are inferred by the model from conversation history
+      // (see prompt.ts comment about hardcoded `step: 'greeting'` causing
+      // re-greets). Keeping the request body minimal avoids dead fields
+      // that look load-bearing but aren't.
       const turnCount = (messages as Array<{ role: string }>).filter(
         (m) => m.role === 'user',
       ).length

@@ -8,6 +8,13 @@ import { useChatConversation } from './use-chat-conversation'
 
 type AudioChunk = { index: number; url: string }
 
+/** Per-message-id audio chunk keys. Each assistant turn restarts indexes
+ *  from 0 server-side; we namespace by message id so dedup doesn't block
+ *  later turns. */
+function chunkKey(messageId: string, index: number): string {
+  return `${messageId}#${index}`
+}
+
 export type LeadCardState =
   | { phase: 'pending' }
   | { phase: 'submitting' }
@@ -40,10 +47,15 @@ const LAUNCHER_OPEN_KEY = 'perla.chat.launcherOpen'
 
 export function ChatProvider({ locale, children }: { locale: Locale; children: ReactNode }) {
   const [ttsEnabled, setTtsEnabled] = useState(false)
-  const [isLauncherOpen, setLauncherOpen] = useState<boolean>(() => {
-    if (typeof window === 'undefined') return false
-    return window.sessionStorage.getItem(LAUNCHER_OPEN_KEY) === 'true'
-  })
+  // Initialize false on both server and client to avoid hydration mismatch;
+  // hydrate the saved value in an effect.
+  const [isLauncherOpen, setLauncherOpen] = useState<boolean>(false)
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    if (window.sessionStorage.getItem(LAUNCHER_OPEN_KEY) === 'true') {
+      setLauncherOpen(true)
+    }
+  }, [])
   const [isInlineVisible, setInlineVisible] = useState(false)
   const [leadCardState, setLeadCardStateMap] = useState<Record<string, LeadCardState>>({})
 
@@ -54,21 +66,24 @@ export function ChatProvider({ locale, children }: { locale: Locale; children: R
 
   const audioPlayerRef = useRef<AudioPlayerHandle>(null)
   const [audioChunks, setAudioChunks] = useState<AudioChunk[]>([])
+  const seenChunkKeys = useRef<Set<string>>(new Set())
 
   // Surface streaming TTS audio chunks to the player when ttsEnabled.
+  // Indexes restart at 0 each assistant turn server-side, so dedup must
+  // be namespaced by message id — otherwise the second turn's audio is
+  // silently dropped because index 0 was "already seen" from turn 1.
   useEffect(() => {
     if (!ttsEnabled) return
     const lastMsg = messages[messages.length - 1]
-    if (!lastMsg) return
+    if (!lastMsg || lastMsg.role !== 'assistant') return
     for (const part of lastMsg.parts ?? []) {
       // biome-ignore lint/suspicious/noExplicitAny: AI SDK part shape varies by version
       const p = part as any
       if (p.type === 'data-audio' && p.data?.url && typeof p.data.index === 'number') {
-        setAudioChunks((prev) =>
-          prev.some((c) => c.index === p.data.index)
-            ? prev
-            : [...prev, { index: p.data.index, url: p.data.url }],
-        )
+        const key = chunkKey(lastMsg.id, p.data.index)
+        if (seenChunkKeys.current.has(key)) continue
+        seenChunkKeys.current.add(key)
+        setAudioChunks((prev) => [...prev, { index: prev.length, url: p.data.url }])
       }
     }
   }, [messages, ttsEnabled])

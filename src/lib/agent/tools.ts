@@ -19,17 +19,22 @@ export const escalateEmergencyParams = z.object({
 export type SubmitLeadInput = z.infer<typeof submitLeadParams>
 export type EscalateEmergencyInput = z.infer<typeof escalateEmergencyParams>
 
-export type ProposeLeadResult = {
-  status: 'pending_consent'
-  fields: SubmitLeadInput
-  fingerprint: string
-}
+/**
+ * Discriminated tool result. The chat path defers writes to the user
+ * confirmation card and returns `pending_consent`. The voice path
+ * obtains verbal consent in-call and writes immediately, returning
+ * `saved` so the model knows the row is already on disk.
+ */
+export type ProposeLeadResult =
+  | { status: 'pending_consent'; fields: SubmitLeadInput; fingerprint: string }
+  | { status: 'saved'; fields: SubmitLeadInput; leadId: string }
 
 export type ToolDeps = {
   /**
-   * Returns a signed envelope for the user-facing consent card. Does NOT
-   * write the lead. The actual write happens at /api/lead/submit after the
-   * user clicks "Send to clinic".
+   * Either returns a signed envelope for the user-facing consent card
+   * (chat path; does NOT write — write happens at /api/lead/submit
+   * after the user clicks "Send to clinic"), or writes immediately
+   * with verbal consent (voice path; returns `saved`).
    */
   onProposeLead: (input: SubmitLeadInput) => Promise<ProposeLeadResult>
   onEscalateEmergency: (input: EscalateEmergencyInput) => Promise<{ ack: true }>

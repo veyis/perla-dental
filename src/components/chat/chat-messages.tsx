@@ -15,7 +15,9 @@ export function ChatMessages() {
   const { messages, status } = useChatContext()
   const scrollRef = useRef<HTMLDivElement>(null)
 
-  // Auto-scroll only when user is near the bottom — don't hijack reading.
+  // Auto-scroll on new content, but only when the user is already near the
+  // bottom — never hijack a scroll-up to read earlier messages.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: trigger on changes; body reads scroll geometry, not the deps
   useEffect(() => {
     const el = scrollRef.current
     if (!el) return
@@ -23,7 +25,7 @@ export function ChatMessages() {
     if (isNearBottom) {
       el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' })
     }
-  }, [])
+  }, [messages, status])
 
   const lastMessage = messages[messages.length - 1]
   const showTyping =

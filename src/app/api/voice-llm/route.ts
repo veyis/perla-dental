@@ -73,11 +73,10 @@ export async function POST(req: Request) {
 
   const tools = buildTools({
     onProposeLead: async (input) => {
-      // Voice flow: verbal consent already obtained mid-call, so the row
-      // is written immediately. We still return a pending_consent envelope
-      // because that's the shared tool contract; the model's follow-up
-      // turn will confirm verbally with the caller — one extra short
-      // exchange relative to the prior behavior.
+      // Voice flow: verbal consent obtained mid-call, write the row
+      // immediately and return the `saved` discriminator so the model
+      // moves to the closing step. The chat-side `pending_consent`
+      // semantics don't apply — there's no card to render in voice.
       const result = await submitLead({
         ip,
         conversationId,
@@ -88,7 +87,7 @@ export async function POST(req: Request) {
       })
       if (result.success) {
         await audit({ kind: 'lead_submitted', leadId: result.leadId, conversationId })
-        return { status: 'pending_consent' as const, fields: input, fingerprint: '' }
+        return { status: 'saved' as const, fields: input, leadId: result.leadId }
       }
       throw new Error(`submitLead failed: ${result.reason}`)
     },

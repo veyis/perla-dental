@@ -55,6 +55,10 @@ export async function POST(req: Request) {
           await audit({
             kind: 'lead_consent_pending',
             conversationId: body.conversationId,
+            // Short fingerprint hint helps correlate later /api/lead/submit
+            // attempts back to which proposal they're referencing without
+            // logging the full HMAC (which could enable replay analysis).
+            fingerprintHint: fingerprint.slice(0, 8),
           })
           return { status: 'pending_consent' as const, fields: input, fingerprint }
         },
