@@ -1,0 +1,13 @@
+node_modules
+.next
+.vercel
+.env
+.env.local
+.env.*.local
+*.log
+.DS_Store
+.turbo
+coverage
+.vitest-cache
+playwright-report
+test-results
