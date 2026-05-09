@@ -20,9 +20,7 @@ describe('sanitizeForTTS', () => {
   })
 
   it('strips markdown links but keeps text', () => {
-    expect(sanitizeForTTS('See [our website](https://example.com).')).toBe(
-      'See our website.',
-    )
+    expect(sanitizeForTTS('See [our website](https://example.com).')).toBe('See our website.')
   })
 
   it('strips bullet markers', () => {

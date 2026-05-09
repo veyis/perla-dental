@@ -7,7 +7,7 @@ import { ShieldCheck, Award, Users, Phone, MapPin } from 'lucide-react'
 export function TrustStrip() {
   const t = useTranslations('trust')
   const f = useTranslations('footer')
-  
+
   return (
     <footer className="bg-white border-t py-12">
       <div className="container mx-auto px-6">
@@ -56,8 +56,12 @@ export function TrustStrip() {
             <span>{f('address')}</span>
           </div>
           <div className="flex gap-8">
-            <a href="/privacy" className="hover:text-primary transition-colors">Privacy Policy</a>
-            <a href="/terms" className="hover:text-primary transition-colors">Terms of Service</a>
+            <a href="/privacy" className="hover:text-primary transition-colors">
+              Privacy Policy
+            </a>
+            <a href="/terms" className="hover:text-primary transition-colors">
+              Terms of Service
+            </a>
             <span>© 2024 Perla Dental Clinic. All rights reserved.</span>
           </div>
         </div>

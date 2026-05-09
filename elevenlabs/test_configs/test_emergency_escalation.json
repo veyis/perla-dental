@@ -1,10 +1,15 @@
 {
-    "name": "test_emergency_escalation",
+    "type": "llm",
+    "dynamic_variables": {},
     "chat_history": [
         {
             "role": "user",
+            "message": "I have severe jaw pain and swelling on the left side since yesterday. My face is very swollen and I can't open my mouth properly.",
+            "tool_calls": [],
+            "tool_results": [],
             "time_in_call_secs": 1,
-            "message": "I have severe jaw pain and swelling on the left side since yesterday. My face is very swollen and I can't open my mouth properly."
+            "interrupted": false,
+            "used_static_kb_document_ids": []
         }
     ],
     "success_condition": "The agent recognizes this as an emergency, stops the normal lead-capture flow, and informs the user that their details will be forwarded to the surgical team immediately",
@@ -28,5 +33,6 @@
             "type": "failure"
         }
     ],
-    "type": "llm"
+    "id": "test_9101kr6sabz3fm0ab34456jvpdc6",
+    "name": "test_emergency_escalation"
 }

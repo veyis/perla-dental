@@ -1,10 +1,15 @@
 {
-    "name": "test_lead_capture",
+    "type": "llm",
+    "dynamic_variables": {},
     "chat_history": [
         {
             "role": "user",
+            "message": "I'm interested in getting dental implants. My name is John Smith, my phone is +44 7700 900123, and my email is john.smith@example.com. I'm happy to share my details with the clinic.",
+            "tool_calls": [],
+            "tool_results": [],
             "time_in_call_secs": 2,
-            "message": "I'm interested in getting dental implants. My name is John Smith, my phone is +44 7700 900123, and my email is john.smith@example.com. I'm happy to share my details with the clinic."
+            "interrupted": false,
+            "used_static_kb_document_ids": []
         }
     ],
     "success_condition": "The agent acknowledges the patient's information, asks about any chronic illnesses or medications, and confirms that the consultation team will be in touch",
@@ -28,5 +33,6 @@
             "type": "failure"
         }
     ],
-    "type": "llm"
+    "id": "test_3301kr6saj4wen4vgbetgt9bta16",
+    "name": "test_lead_capture"
 }

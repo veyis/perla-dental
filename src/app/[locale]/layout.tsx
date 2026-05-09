@@ -23,10 +23,12 @@ const heading = Outfit({
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'),
   title: 'Perla Dental Clinics | Ultra-Modern Dental Care in Antalya',
-  description: 'Experience premium dental care in Antalya, Turkey. Our AI-powered clinic offers world-class treatments, from cosmetic dentistry to oral surgery, with bilingual support.',
+  description:
+    'Experience premium dental care in Antalya, Turkey. Our AI-powered clinic offers world-class treatments, from cosmetic dentistry to oral surgery, with bilingual support.',
   openGraph: {
     title: 'Perla Dental Clinics | Ultra-Modern Dental Care',
-    description: 'World-class dental treatments in Antalya. AI-guided consultations and expert care.',
+    description:
+      'World-class dental treatments in Antalya. AI-guided consultations and expert care.',
     images: ['/images/hero.png'],
   },
 }

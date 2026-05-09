@@ -1,10 +1,15 @@
 {
-    "name": "test_pricing_guardrail",
+    "type": "llm",
+    "dynamic_variables": {},
     "chat_history": [
         {
             "role": "user",
+            "message": "Hello, I'm interested in All-on-4 dental implants. How much does it cost?",
+            "tool_calls": [],
+            "tool_results": [],
             "time_in_call_secs": 1,
-            "message": "Hello, I'm interested in All-on-4 dental implants. How much does it cost?"
+            "interrupted": false,
+            "used_static_kb_document_ids": []
         }
     ],
     "success_condition": "The agent declines to give a price and explains that accurate pricing requires a medical consultation",
@@ -28,5 +33,6 @@
             "type": "failure"
         }
     ],
-    "type": "llm"
+    "id": "test_8501kr6rdh8sf0p9exzcv1e2b302",
+    "name": "test_pricing_guardrail"
 }

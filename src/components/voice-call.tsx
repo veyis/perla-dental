@@ -1,6 +1,12 @@
 'use client'
 
-import { ConversationProvider, useConversation } from '@elevenlabs/react'
+import {
+  ConversationProvider,
+  useConversationControls,
+  useConversationInput,
+  useConversationMode,
+  useConversationStatus,
+} from '@elevenlabs/react'
 import { motion } from 'framer-motion'
 import { Loader2, Phone, PhoneOff, RefreshCw } from 'lucide-react'
 import { useTranslations } from 'next-intl'
@@ -18,9 +24,10 @@ const LOCALE_TO_LANG: Record<Locale, 'en' | 'tr' | 'ru' | 'de'> = {
  * Phone-call style voice agent backed by ElevenLabs Conversational AI.
  *
  * The Agent is configured in the ElevenLabs dashboard with our system
- * prompt, voice ID, and a "Custom LLM" pointing to our /api/voice-llm
- * route which proxies to Claude Haiku 4.5. Barge-in, VAD, end-of-utterance
- * detection, and reconnection are handled by the SDK + WebRTC transport.
+ * prompt, voice ID, and a "Custom LLM" pointing to our voice-llm route
+ * (base URL /api/voice-llm; ElevenLabs auto-appends /chat/completions),
+ * which proxies to Claude Haiku 4.5. Barge-in, VAD, end-of-utterance
+ * detection, and reconnection are handled by the SDK + WebSocket transport.
  */
 export function VoiceCall({ locale }: { locale: Locale }) {
   const agentId = process.env.NEXT_PUBLIC_ELEVENLABS_AGENT_ID
@@ -32,38 +39,63 @@ export function VoiceCall({ locale }: { locale: Locale }) {
       </div>
     )
   }
+
+  return <VoiceCallStateful agentId={agentId} locale={locale} />
+}
+
+function VoiceCallStateful({ agentId, locale }: { agentId: string; locale: Locale }) {
+  const tErrors = useTranslations('errors')
+  const [callError, setCallError] = useState<string | null>(null)
+
   return (
-    <ConversationProvider>
-      <VoiceCallInner agentId={agentId} locale={locale} />
+    <ConversationProvider
+      onError={(err: unknown, ctx?: unknown) => {
+        console.error('[VoiceCall] error:', err, ctx)
+        const msg = err instanceof Error ? err.message : String(err)
+        setCallError(msg)
+      }}
+      onConnect={({ conversationId }) => {
+        console.log('[VoiceCall] connected:', conversationId)
+        setCallError(null)
+      }}
+      onDisconnect={(details?: unknown) => {
+        console.log('[VoiceCall] disconnected — full details:', JSON.stringify(details, null, 2))
+      }}
+      onModeChange={({ mode }) => {
+        console.log('[VoiceCall] mode:', mode)
+      }}
+      onDebug={(event: unknown) => {
+        console.log('[VoiceCall] debug:', JSON.stringify(event))
+      }}
+    >
+      <VoiceCallUI
+        agentId={agentId}
+        locale={locale}
+        callError={callError}
+        setCallError={setCallError}
+        tErrors={tErrors}
+      />
     </ConversationProvider>
   )
 }
 
-function VoiceCallInner({ agentId, locale }: { agentId: string; locale: Locale }) {
-  const tErrors = useTranslations('errors')
-  const [callError, setCallError] = useState<string | null>(null)
-
-  const { startSession, endSession, status, isSpeaking, isListening, isMuted, setMuted } =
-    useConversation({
-      onError: (err: unknown, ctx?: unknown) => {
-        console.error('[VoiceCall] error:', err, ctx)
-        const msg = err instanceof Error ? err.message : String(err)
-        setCallError(msg)
-      },
-      onConnect: ({ conversationId }) => {
-        console.log('[VoiceCall] connected:', conversationId)
-        setCallError(null)
-      },
-      onDisconnect: (details?: unknown) => {
-        console.log('[VoiceCall] disconnected — full details:', JSON.stringify(details, null, 2))
-      },
-      onModeChange: ({ mode }) => {
-        console.log('[VoiceCall] mode:', mode)
-      },
-      onDebug: (event: unknown) => {
-        console.log('[VoiceCall] debug:', JSON.stringify(event))
-      },
-    })
+function VoiceCallUI({
+  agentId,
+  locale,
+  callError,
+  setCallError,
+  tErrors,
+}: {
+  agentId: string
+  locale: Locale
+  callError: string | null
+  setCallError: (err: string | null) => void
+  tErrors: (key: string) => string
+}) {
+  const { startSession, endSession } = useConversationControls()
+  const { status } = useConversationStatus()
+  const { isSpeaking, isListening } = useConversationMode()
+  const { isMuted, setMuted } = useConversationInput()
 
   const isConnecting = status === 'connecting'
   const isConnected = status === 'connected'

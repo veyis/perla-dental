@@ -8,7 +8,7 @@
   --color-surface: #ffffff;
   --color-text: #1a1a1a;
   --color-text-muted: #666666;
-  
+
   --font-body: var(--font-body), system-ui, sans-serif;
   --font-heading: var(--font-heading), system-ui, sans-serif;
 
@@ -24,7 +24,10 @@
     -webkit-font-smoothing: antialiased;
   }
 
-  h1, h2, h3, h4 {
+  h1,
+  h2,
+  h3,
+  h4 {
     font-family: var(--font-heading);
     letter-spacing: -0.02em;
   }
@@ -37,9 +40,14 @@
     -webkit-backdrop-filter: blur(20px);
     border: 1px solid rgba(255, 255, 255, 0.3);
   }
-  
+
   .text-gradient {
-    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 50%, var(--color-highlight) 100%);
+    background: linear-gradient(
+      135deg,
+      var(--color-primary) 0%,
+      var(--color-primary-light) 50%,
+      var(--color-highlight) 100%
+    );
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
   }

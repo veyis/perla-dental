@@ -1,18 +1,22 @@
 /**
- * OpenAI-compatible /v1/chat/completions endpoint that proxies to
+ * OpenAI-compatible /chat/completions endpoint that proxies to
  * Anthropic Claude Haiku 4.5 via the Vercel AI SDK.
  *
  * ElevenLabs Conversational AI (Agents) supports "Custom LLM" — a
  * BYO endpoint matching the OpenAI Chat Completions streaming spec.
- * They send messages here, we stream Claude back.
+ * In `chat_completions` mode ElevenLabs auto-appends `/chat/completions`
+ * to whatever base URL you paste in the dashboard, so this handler must
+ * live at that suffix.
  *
  * Tool execution (submitLead, escalateEmergency) happens entirely
  * inside this proxy via the AI SDK — ElevenLabs only sees the final
  * text deltas. The agent stays a single coherent voice from the
  * user's perspective.
  *
- * Endpoint URL to paste into the ElevenLabs Agent dashboard:
+ * Base URL to paste into the ElevenLabs Agent dashboard:
  *   https://<your-domain>/api/voice-llm
+ * ElevenLabs will call:
+ *   https://<your-domain>/api/voice-llm/chat/completions
  */
 
 import { anthropic } from '@ai-sdk/anthropic'
@@ -58,8 +62,6 @@ type OpenAIRequest = {
 }
 
 export async function POST(req: Request) {
-  // FIRST line — log that ANY request hit us, before any validation,
-  // so we can tell whether a failed call ever reached the handler.
   console.log('[voice-llm] HIT', {
     ua: req.headers.get('user-agent')?.slice(0, 60),
     ct: req.headers.get('content-type'),
@@ -70,7 +72,6 @@ export async function POST(req: Request) {
     return new Response('Agent disabled', { status: 503 })
   }
 
-  // Read raw text first so we can dump it on parse failure.
   const raw = await req.text()
   console.log('[voice-llm] RAW BODY (first 600 chars):', raw.slice(0, 600))
 
@@ -87,8 +88,6 @@ export async function POST(req: Request) {
     req.headers.get('x-conversation-id') ?? `voice_${Math.random().toString(36).slice(2, 10)}`
   const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'voice-agent'
 
-  // Verbose request log so we can see exactly what ElevenLabs sends.
-  // Keep msgs trimmed; never log API keys.
   console.log('[voice-llm] request', {
     conversationId,
     streamRequested: body.stream,
@@ -107,10 +106,6 @@ export async function POST(req: Request) {
 
   const tools = buildTools({
     onProposeLead: async (input) => {
-      // Voice flow: verbal consent obtained mid-call, write the row
-      // immediately and return the `saved` discriminator so the model
-      // moves to the closing step. The chat-side `pending_consent`
-      // semantics don't apply — there's no card to render in voice.
       const result = await submitLead({
         ip,
         conversationId,
@@ -129,13 +124,21 @@ export async function POST(req: Request) {
       await audit({ kind: 'emergency_escalated', conversationId, summary: input.summary })
       return { ack: true }
     },
+    onEscalateToHuman: async (input) => {
+      await audit({
+        kind: 'guardrail_event',
+        conversationId,
+        detail: `escalate_to_human: ${input.reason}${
+          input.contactInfo ? ` (contact: ${input.contactInfo})` : ''
+        }`,
+      })
+      return { ack: true }
+    },
   })
 
-  // Pass the static system prompt as a system MESSAGE with 1-hour ephemeral
-  // cache control so the 5,477-char block is cached on Anthropic's side.
-  // First call still pays full cost; subsequent calls (same conv or any
-  // within 1h) drop TTFT from ~2-3s to ~300ms — under the ~6-8s timeout
-  // ElevenLabs Custom LLM enforces.
+  // 1-hour ephemeral cache control on the static system prompt drops
+  // TTFT from ~2-3s to ~300ms after the first call, keeping us under
+  // ElevenLabs Custom LLM's ~6-8s timeout.
   const result = streamText({
     model: anthropic('claude-haiku-4-5'),
     allowSystemInMessages: true,
@@ -178,7 +181,6 @@ export async function POST(req: Request) {
       let textBytes = 0
       let chunkCount = 0
       try {
-        // Initial role chunk so OpenAI clients (and ElevenLabs) recognize the stream.
         send({
           id,
           object: 'chat.completion.chunk',
@@ -202,14 +204,10 @@ export async function POST(req: Request) {
             const err = part.error
             const errMsg = err instanceof Error ? err.message : String(err)
             console.error('[voice-llm] stream error part:', errMsg)
-            // Surface as SSE error so ElevenLabs sees "the LLM errored" rather
-            // than waiting for a stream that never comes.
             send({
               error: { message: errMsg, type: 'server_error' },
             })
           }
-          // tool-call / tool-result events are handled internally by the AI SDK —
-          // tools execute server-side here and Claude continues streaming text.
         }
 
         send({
@@ -220,9 +218,6 @@ export async function POST(req: Request) {
           choices: [{ index: 0, delta: {}, finish_reason: 'stop' }],
         })
 
-        // Usage chunk — required by some OpenAI-compat clients (incl.
-        // ElevenLabs Custom LLM) when stream_options.include_usage is set.
-        // Cheap proxy from byte counts since AI SDK doesn't surface tokens here.
         send({
           id,
           object: 'chat.completion.chunk',
@@ -262,18 +257,11 @@ export async function POST(req: Request) {
   })
 }
 
-/**
- * ElevenLabs sends OpenAI-format messages. Convert them to AI SDK's
- * ModelMessage shape so streamText can consume them. We only need the
- * subset that ElevenLabs actually emits: user/assistant/tool with
- * optional tool_calls.
- */
 function convertOpenAIMessagesToModelMessages(messages: OpenAIMessage[]): ModelMessage[] {
   const out: ModelMessage[] = []
   for (const m of messages) {
-    if (m.role === 'system') continue // we inject our own system prompt
+    if (m.role === 'system') continue
     if (m.role === 'tool') {
-      // Tool result coming back from a previous tool_call.
       out.push({
         role: 'tool' as const,
         content: [

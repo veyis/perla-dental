@@ -70,6 +70,16 @@ export async function POST(req: Request) {
           })
           return { ack: true }
         },
+        onEscalateToHuman: async (input) => {
+          await audit({
+            kind: 'guardrail_event',
+            conversationId: body.conversationId,
+            detail: `escalate_to_human: ${input.reason}${
+              input.contactInfo ? ` (contact: ${input.contactInfo})` : ''
+            }`,
+          })
+          return { ack: true }
+        },
       })
 
       console.log('[chat] request', {

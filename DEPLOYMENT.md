@@ -25,20 +25,46 @@ RTT becomes a bottleneck.
 ## ElevenLabs Conversational AI agent setup
 
 The full-duplex voice mode (phone-call style) uses ElevenLabs Agents.
-One-time configuration in the [ElevenLabs dashboard](https://elevenlabs.io/app/agents):
+The canonical source of truth is `elevenlabs/agent_configs/dental.json`,
+synced via the ElevenLabs CLI:
+
+```bash
+pnpm dlx @elevenlabs/agents-cli auth login   # one-time
+pnpm dlx @elevenlabs/agents-cli agents push --dry-run   # preview
+pnpm dlx @elevenlabs/agents-cli agents push             # apply
+```
+
+If creating from scratch in the [dashboard](https://elevenlabs.io/app/agents):
 
 1. **Create a new Agent**.
-2. **System prompt** → run `pnpm tsx scripts/print-system-prompt.ts` (TODO) to
-   print our `staticSystemBlocks()` content, paste it in.
+2. **System prompt** → `pnpm prompt` prints `staticSystemBlocks()`. Paste in.
 3. **Voice** → select the same voice as `ELEVENLABS_VOICE_ID` in env.
-4. **LLM** → choose **Custom LLM**:
-   - URL: `https://<your-vercel-domain>/api/voice-llm`
-   - Model: leave any value (we ignore it server-side)
-   - API key: leave blank or set a shared secret if you want to gate the proxy.
-5. **First message** → "Welcome to Perla Dental Clinics, how may I help you today?"
-   (Or per-locale variants — create one Agent per language and switch via locale.)
+4. **LLM** → choose **Custom LLM** (`api_type: chat_completions`):
+   - **Server URL (base)**: `https://<your-vercel-domain>/api/voice-llm`
+     (ElevenLabs auto-appends `/chat/completions`; the route handler lives
+      at `src/app/api/voice-llm/chat/completions/route.ts`).
+   - **Model ID**: `claude-haiku-4-5` (we forward this label only — the proxy
+      always uses Anthropic Claude Haiku 4.5 server-side).
+   - **API key**: store a shared secret in ElevenLabs' secrets vault if you
+      want to gate the proxy. Optional.
+5. **First message** → English default plus `tr / ru / de` language presets
+   (already in `dental.json`).
 6. Copy the Agent's public ID into `.env.local` and Vercel env as
    `NEXT_PUBLIC_ELEVENLABS_AGENT_ID`.
+
+### Post-call webhook
+
+Workspace → Webhooks → Post-call Transcription:
+- URL: `https://<your-vercel-domain>/api/elevenlabs/post-call`
+- Secret: paste a fresh `openssl rand -hex 32` value into both the dashboard
+  and the Vercel env var `ELEVENLABS_WEBHOOK_SECRET`.
+- Events: `transcript` (audio left off — see `dental.json`
+  `workspace_overrides.webhooks`).
+
+### TTS / latency
+
+`tts.model_id` is `eleven_flash_v2_5` (~75 ms TTFT, multilingual). Do not
+swap to `eleven_multilingual_v2` for live calls — it adds 300+ ms.
 
 For production: enable EU residency on the ElevenLabs Enterprise tier
 (`api.eu.residency.elevenlabs.io`) and request a DPA + Zero Retention agreement
