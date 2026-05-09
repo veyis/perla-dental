@@ -2,8 +2,6 @@ import { timingSafeEqual } from 'node:crypto'
 import { env } from '@/lib/env'
 import { getServerClient } from '@/lib/supabase'
 
-export const runtime = 'nodejs'
-
 /**
  * GDPR / KVKK delete-on-request endpoint.
  *

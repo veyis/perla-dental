@@ -1,19 +1,27 @@
-import pino from 'pino'
-import { env } from '@/lib/env'
+import pino, { type Logger } from 'pino'
 
-export const logger = pino({
-  level: env.LOG_LEVEL,
-  redact: {
-    paths: [
-      'fullName',
-      'phone',
-      'email',
-      'chronicIllnesses',
-      '*.fullName',
-      '*.phone',
-      '*.email',
-      '*.chronicIllnesses',
-    ],
-    censor: '[REDACTED]',
+let cached: Logger | null = null
+
+export const logger: Logger = new Proxy({} as Logger, {
+  get(_target, prop: string) {
+    if (!cached) {
+      cached = pino({
+        level: process.env.LOG_LEVEL ?? 'info',
+        redact: {
+          paths: [
+            'fullName',
+            'phone',
+            'email',
+            'chronicIllnesses',
+            '*.fullName',
+            '*.phone',
+            '*.email',
+            '*.chronicIllnesses',
+          ],
+          censor: '[REDACTED]',
+        },
+      })
+    }
+    return Reflect.get(cached, prop)
   },
 })

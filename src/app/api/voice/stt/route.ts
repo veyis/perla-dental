@@ -1,7 +1,6 @@
 import { transcribe } from '@/lib/voice/stt'
 
 export const maxDuration = 30
-export const runtime = 'nodejs'
 
 export async function POST(req: Request) {
   const contentType = req.headers.get('content-type') ?? 'audio/webm'

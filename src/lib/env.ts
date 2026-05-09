@@ -1,6 +1,5 @@
-// Server-only. Consumed lazily — importing this module in code that runs
-// without env vars set will throw at parse time. Do not import from client
-// components or pre-rendered modules without env present.
+// Server-only. Validated lazily on first access so this module can be imported
+// during `next build` page-data collection without env vars being set.
 import { z } from 'zod'
 
 const envSchema = z.object({
@@ -19,5 +18,22 @@ const envSchema = z.object({
   NEXT_PUBLIC_SITE_URL: z.string().url(),
 })
 
-export const env = envSchema.parse(process.env)
+type Env = z.infer<typeof envSchema>
+
+let cached: Env | null = null
+
+function loadEnv(): Env {
+  if (cached) return cached
+  cached = envSchema.parse(process.env)
+  return cached
+}
+
+// Proxy defers validation until a property is actually read at runtime.
+// At build time nothing reads it, so missing env vars don't fail the build.
+export const env = new Proxy({} as Env, {
+  get(_target, prop: string) {
+    return loadEnv()[prop as keyof Env]
+  },
+})
+
 export const isAgentDisabled = () => env.AGENT_DISABLED === 'true'

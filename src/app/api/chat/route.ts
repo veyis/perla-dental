@@ -18,7 +18,6 @@ import { sentenceFlush } from '@/lib/voice/sentence-splitter'
 import { synthesizeAndStoreSentence } from '@/lib/voice/tts'
 
 export const maxDuration = 60
-export const runtime = 'nodejs'
 
 type ChatBody = {
   messages: UIMessage[]
