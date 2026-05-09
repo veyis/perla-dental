@@ -1,5 +1,6 @@
 'use client'
 
+import { useTranslations } from 'next-intl'
 import { createContext, type ReactNode, useContext, useEffect, useRef, useState } from 'react'
 import { AudioPlayer } from '@/components/ai-elements'
 import type { AudioPlayerHandle } from '@/components/ai-elements/audio-player'
@@ -45,6 +46,7 @@ type ChatContextValue = {
 const ChatContext = createContext<ChatContextValue | null>(null)
 
 const LAUNCHER_OPEN_KEY = 'perla.chat.launcherOpen'
+const AUTO_GREETED_KEY = 'perla.chat.autoGreeted'
 
 export function ChatProvider({ locale, children }: { locale: Locale; children: ReactNode }) {
   const [ttsEnabled, setTtsEnabled] = useState(false)
@@ -60,6 +62,8 @@ export function ChatProvider({ locale, children }: { locale: Locale; children: R
   const [isInlineVisible, setInlineVisible] = useState(false)
   const [leadCardState, setLeadCardStateMap] = useState<Record<string, LeadCardState>>({})
 
+  const t = useTranslations('chat')
+
   const { messages, status, sendMessage, setMessages, conversationId } = useChatConversation({
     locale,
     ttsEnabled,
@@ -68,6 +72,31 @@ export function ChatProvider({ locale, children }: { locale: Locale; children: R
   const audioPlayerRef = useRef<AudioPlayerHandle>(null)
   const [audioChunks, setAudioChunks] = useState<AudioChunk[]>([])
   const seenChunkKeys = useRef<Set<string>>(new Set())
+
+  // Auto-open once per tab session and inject the protocol greeting.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: mount-only, all refs are stable
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    if (window.sessionStorage.getItem(AUTO_GREETED_KEY) === 'true') return
+
+    const timer = setTimeout(() => {
+      openLauncher()
+      window.sessionStorage.setItem(AUTO_GREETED_KEY, 'true')
+      setMessages((prev) =>
+        prev.length === 0
+          ? [
+              {
+                id: crypto.randomUUID(),
+                role: 'assistant',
+                parts: [{ type: 'text', text: t('greeting') }],
+              },
+            ]
+          : prev,
+      )
+    }, 3500)
+
+    return () => clearTimeout(timer)
+  }, [])
 
   // Surface streaming TTS audio chunks to the player when ttsEnabled.
   // Indexes restart at 0 each assistant turn server-side, so dedup must
