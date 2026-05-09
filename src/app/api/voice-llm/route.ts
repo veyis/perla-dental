@@ -63,10 +63,20 @@ export async function POST(req: Request) {
     req.headers.get('x-conversation-id') ?? `voice_${Math.random().toString(36).slice(2, 10)}`
   const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'voice-agent'
 
+  // Verbose request log so we can see exactly what ElevenLabs sends.
+  // Keep msgs trimmed; never log API keys.
   console.log('[voice-llm] request', {
     conversationId,
-    msgs: body.messages?.length,
     streamRequested: body.stream,
+    model: body.model,
+    msgCount: body.messages?.length,
+    hasTools: Array.isArray(body.tools) ? (body.tools as unknown[]).length : 0,
+    lastMsgRole: body.messages?.[body.messages.length - 1]?.role,
+    lastMsgPreview:
+      typeof body.messages?.[body.messages.length - 1]?.content === 'string'
+        ? (body.messages[body.messages.length - 1].content as string).slice(0, 80)
+        : null,
+    userAgent: req.headers.get('user-agent')?.slice(0, 60),
   })
 
   const messages = convertOpenAIMessagesToModelMessages(body.messages ?? [])
@@ -122,6 +132,8 @@ export async function POST(req: Request) {
         controller.enqueue(encoder.encode(`data: ${JSON.stringify(payload)}\n\n`))
       }
 
+      let textBytes = 0
+      let chunkCount = 0
       try {
         // Initial role chunk so OpenAI clients (and ElevenLabs) recognize the stream.
         send({
@@ -134,6 +146,8 @@ export async function POST(req: Request) {
 
         for await (const part of result.fullStream) {
           if (part.type === 'text-delta' && part.text) {
+            textBytes += part.text.length
+            chunkCount++
             send({
               id,
               object: 'chat.completion.chunk',
@@ -143,8 +157,13 @@ export async function POST(req: Request) {
             })
           } else if (part.type === 'error') {
             const err = part.error
-            const msg = err instanceof Error ? err.message : String(err)
-            console.error('[voice-llm] stream error part:', msg)
+            const errMsg = err instanceof Error ? err.message : String(err)
+            console.error('[voice-llm] stream error part:', errMsg)
+            // Surface as SSE error so ElevenLabs sees "the LLM errored" rather
+            // than waiting for a stream that never comes.
+            send({
+              error: { message: errMsg, type: 'server_error' },
+            })
           }
           // tool-call / tool-result events are handled internally by the AI SDK —
           // tools execute server-side here and Claude continues streaming text.
@@ -157,8 +176,26 @@ export async function POST(req: Request) {
           model,
           choices: [{ index: 0, delta: {}, finish_reason: 'stop' }],
         })
+
+        // Usage chunk — required by some OpenAI-compat clients (incl.
+        // ElevenLabs Custom LLM) when stream_options.include_usage is set.
+        // Cheap proxy from byte counts since AI SDK doesn't surface tokens here.
+        send({
+          id,
+          object: 'chat.completion.chunk',
+          created,
+          model,
+          choices: [],
+          usage: {
+            prompt_tokens: 0,
+            completion_tokens: chunkCount,
+            total_tokens: chunkCount,
+          },
+        })
+
         controller.enqueue(encoder.encode('data: [DONE]\n\n'))
         controller.close()
+        console.log('[voice-llm] stream done', { chunks: chunkCount, bytes: textBytes })
       } catch (err) {
         const msg = err instanceof Error ? err.message : String(err)
         console.error('[voice-llm] fatal stream error:', msg)
