@@ -107,12 +107,27 @@ export async function POST(req: Request) {
     },
   })
 
+  // Pass the static system prompt as a system MESSAGE with 1-hour ephemeral
+  // cache control so the 5,477-char block is cached on Anthropic's side.
+  // First call still pays full cost; subsequent calls (same conv or any
+  // within 1h) drop TTFT from ~2-3s to ~300ms — under the ~6-8s timeout
+  // ElevenLabs Custom LLM enforces.
   const result = streamText({
     model: anthropic('claude-haiku-4-5'),
-    system: staticSystemBlocks(),
-    messages,
+    allowSystemInMessages: true,
+    messages: [
+      {
+        role: 'system',
+        content: staticSystemBlocks(),
+        providerOptions: {
+          anthropic: { cacheControl: { type: 'ephemeral', ttl: '1h' } },
+        },
+      } as never,
+      ...messages,
+    ],
     tools,
     temperature: body.temperature ?? 0.7,
+    maxOutputTokens: 400,
   })
 
   result.consumeStream({
