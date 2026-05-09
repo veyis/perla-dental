@@ -6,8 +6,8 @@
     "dev": "next dev --turbopack",
     "build": "next build --turbopack",
     "start": "next start",
-    "lint": "biome check src app tests",
-    "format": "biome format --write src app tests",
+    "lint": "biome check src tests",
+    "format": "biome format --write src tests",
     "test": "vitest",
     "test:run": "vitest run",
     "test:e2e": "playwright test"
