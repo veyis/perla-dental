@@ -1,5 +1,5 @@
 import type { Locale } from '@/i18n/config'
-import { env, requireEnv } from '@/lib/env'
+import { requireEnv } from '@/lib/env'
 import { getServerClient } from '@/lib/supabase'
 
 const BUCKET = 'perla-tts'
@@ -21,10 +21,14 @@ export async function synthesizeAndStoreSentence(text: string, language: Locale)
   const apiKey = requireEnv('ELEVENLABS_API_KEY')
   const url = `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}?output_format=mp3_44100_128`
 
-  console.log('[tts] synth start', { len: text.length, voiceId, language })
+  console.log('[tts] synth start', { len: text.length, language })
+
+  const ac = new AbortController()
+  const timer = setTimeout(() => ac.abort(), 8_000)
 
   const res = await fetch(url, {
     method: 'POST',
+    signal: ac.signal,
     headers: {
       'xi-api-key': apiKey,
       'Content-Type': 'application/json',
@@ -33,8 +37,9 @@ export async function synthesizeAndStoreSentence(text: string, language: Locale)
     body: JSON.stringify({
       text,
       model_id: 'eleven_flash_v2_5',
+      language_code: language,
     }),
-  })
+  }).finally(() => clearTimeout(timer))
 
   if (!res.ok) {
     const body = await res.text().catch(() => '')
