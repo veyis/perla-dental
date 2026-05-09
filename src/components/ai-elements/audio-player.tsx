@@ -24,7 +24,9 @@ export function AudioPlayer({ urls }: { urls: string[] }) {
     }
   }
 
-  return <audio ref={ref} onEnded={onEnded} className="hidden">
-    <track kind="captions" />
-  </audio>
+  return (
+    <audio ref={ref} onEnded={onEnded} className="hidden">
+      <track kind="captions" />
+    </audio>
+  )
 }
