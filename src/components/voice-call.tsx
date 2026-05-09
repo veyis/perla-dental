@@ -70,12 +70,16 @@ function VoiceCallInner({ agentId, locale }: { agentId: string; locale: Locale }
 
   async function handleStart() {
     try {
-      // Default WebRTC transport (LiveKit). The underlying livekit-client v1/v2
-      // mismatch (elevenlabs/packages#645) is patched via the
-      // `livekit-client: 2.16.1` override in package.json.
+      // Use WebSocket transport. Empirically, WebRTC via LiveKit fails on
+      // some networks even with the livekit-client@2.16.1 pin
+      // (elevenlabs/packages#645) — the signaling connects but audio tracks
+      // never negotiate, resulting in 30s sessions with 0 ASR / 0 TTS usage.
+      // WebSocket is a slight quality drop (lower priority audio, no built-in
+      // volume metering) but is reliable across all networks. Barge-in still
+      // works because VAD runs client-side.
       await startSession({
         agentId,
-        connectionType: 'webrtc',
+        connectionType: 'websocket',
         overrides: {
           agent: { language: LOCALE_TO_LANG[locale] },
         },
