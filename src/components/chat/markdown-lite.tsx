@@ -22,6 +22,7 @@ function renderBlock(block: string, key: number): ReactNode {
     return (
       <ul key={key} className="list-disc pl-5 my-2 space-y-1">
         {lines.map((l, i) => (
+          // biome-ignore lint/suspicious/noArrayIndexKey: tokens are derived deterministically from input
           <li key={i}>{renderInline(l.replace(/^\s*-\s+/, ''))}</li>
         ))}
       </ul>
@@ -50,8 +51,11 @@ function renderInline(text: string): ReactNode {
   if (last < escaped.length) tokens.push({ type: 'text', value: escaped.slice(last) })
 
   return tokens.map((t, i) => {
+    // biome-ignore lint/suspicious/noArrayIndexKey: tokens are derived deterministically from input
     if (t.type === 'strong') return <strong key={i}>{t.value}</strong>
+    // biome-ignore lint/suspicious/noArrayIndexKey: tokens are derived deterministically from input
     if (t.type === 'em') return <em key={i}>{t.value}</em>
+    // biome-ignore lint/suspicious/noArrayIndexKey: tokens are derived deterministically from input
     return <Fragment key={i}>{t.value}</Fragment>
   })
 }

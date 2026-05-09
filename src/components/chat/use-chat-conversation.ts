@@ -28,8 +28,9 @@ export function useChatConversation(args: { locale: Locale; ttsEnabled: boolean 
   const transport = new DefaultChatTransport({
     api: '/api/chat',
     prepareSendMessagesRequest: ({ messages, body }) => {
-      const turnCount = (messages as Array<{ role: string }>).filter((m) => m.role === 'user')
-        .length
+      const turnCount = (messages as Array<{ role: string }>).filter(
+        (m) => m.role === 'user',
+      ).length
       return {
         body: {
           ...body,

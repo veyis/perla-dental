@@ -115,7 +115,7 @@ function Bubble({
 
 function TypingIndicator({ label }: { label: string }) {
   return (
-    <div className="flex justify-start" aria-live="polite" aria-label={label}>
+    <div className="flex justify-start" role="status" aria-live="polite" aria-label={label}>
       <div className="flex items-center gap-1 bg-white border border-black/5 rounded-2xl rounded-bl-md px-4 py-3 shadow-sm">
         {[0, 1, 2].map((i) => (
           <motion.span

@@ -16,12 +16,7 @@
  */
 
 import { anthropic } from '@ai-sdk/anthropic'
-import {
-  type ModelMessage,
-  convertToModelMessages,
-  streamText,
-  type UIMessage,
-} from 'ai'
+import { convertToModelMessages, type ModelMessage, streamText, type UIMessage } from 'ai'
 import { staticSystemBlocks } from '@/lib/agent/prompt'
 import { buildTools } from '@/lib/agent/tools'
 import { isAgentDisabled } from '@/lib/env'

@@ -1,14 +1,6 @@
 'use client'
 
-import {
-  createContext,
-  type ReactNode,
-  useContext,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react'
+import { createContext, type ReactNode, useContext, useEffect, useRef, useState } from 'react'
 import { AudioPlayer } from '@/components/ai-elements'
 import type { AudioPlayerHandle } from '@/components/ai-elements/audio-player'
 import type { Locale } from '@/i18n/config'
@@ -97,35 +89,23 @@ export function ChatProvider({ locale, children }: { locale: Locale; children: R
     setLeadCardStateMap((m) => ({ ...m, [id]: state }))
   }
 
-  const value = useMemo<ChatContextValue>(
-    () => ({
-      locale,
-      conversationId,
-      messages,
-      status,
-      sendMessage,
-      ttsEnabled,
-      setTtsEnabled,
-      isLauncherOpen,
-      openLauncher,
-      closeLauncher,
-      isInlineVisible,
-      setInlineVisible,
-      leadCardState,
-      setLeadCardState,
-    }),
-    [
-      locale,
-      conversationId,
-      messages,
-      status,
-      sendMessage,
-      ttsEnabled,
-      isLauncherOpen,
-      isInlineVisible,
-      leadCardState,
-    ],
-  )
+  // React Compiler (babel-plugin-react-compiler) auto-memoizes this object.
+  const value: ChatContextValue = {
+    locale,
+    conversationId,
+    messages,
+    status,
+    sendMessage,
+    ttsEnabled,
+    setTtsEnabled,
+    isLauncherOpen,
+    openLauncher,
+    closeLauncher,
+    isInlineVisible,
+    setInlineVisible,
+    leadCardState,
+    setLeadCardState,
+  }
 
   return (
     <ChatContext.Provider value={value}>
