@@ -87,13 +87,13 @@ Lead data includes name, phone, email, **chronic-illness disclosure** (special-c
 │      messages: convertToModelMessages(messages),                │
 │    })                                                            │
 │      ↓ on each sentence boundary                                │
-│    ElevenLabs Flash v2.5 → MP3 → Vercel Blob                    │
+│    ElevenLabs Flash v2.5 → MP3 → Supabase Storage (perla-tts)   │
 │      ↓                                                           │
 │    writer.write({ type: 'data-audio', transient: true,          │
 │                   data: { url } })                              │
 │                                                                  │
 │  Tools execute server-side:                                     │
-│    submitLead       → googleapis Sheets append + Resend email   │
+│    submitLead       → Supabase perla.leads insert + Resend email│
 │    escalateEmergency → URGENT-prefixed Resend email             │
 └────────────────────────────────────────────────────────────────┘
 ```
@@ -116,13 +116,13 @@ All versions verified live as of 2026-05-08.
 | LLM SDK | `@ai-sdk/anthropic` | 3.0.74 |
 | STT | Deepgram Nova-3 Multilingual (REST prerecorded) | — |
 | TTS | ElevenLabs Flash v2.5 (streaming) | — |
-| Audio storage | Vercel Blob | — |
+| Audio storage | Supabase Storage (`perla-tts`) | — |
 | VAD | `@ricky0123/vad-react` | 0.0.30 |
 | Chat UI | Vercel AI Elements (`Persona`, `AudioPlayer`, `Conversation`, `Message`) | latest registry |
 | UI primitives | shadcn/ui + Tailwind CSS | latest / 4.2 |
 | i18n | next-intl | latest |
 | Validation | Zod | 4.4.3 |
-| Lead sink | Google Sheets (`googleapis`) + Resend | latest |
+| Lead sink | Supabase Postgres (`@supabase/supabase-js`) + Resend | latest |
 | Linter | Biome | latest |
 | Tests | Vitest + Playwright + Promptfoo | latest |
 
@@ -133,10 +133,9 @@ All versions verified live as of 2026-05-08.
 1. Anthropic API
 2. Deepgram
 3. ElevenLabs
-4. Google Cloud (service account for Sheets)
+4. Supabase (project hosts `perla` schema for leads + audit, `perla-tts` Storage bucket, `touch_rate_limit` RPC for IP rate limiting)
 5. Resend (with verified domain)
-6. Upstash Redis (provisioned via Vercel Marketplace, free tier; used for IP rate limiting)
-7. Vercel Pro
+6. Vercel Pro
 
 ---
 
@@ -231,7 +230,7 @@ PTT button press
   └─ useChat.sendMessage(text)
        └─ /api/chat streamText
             └─ on each sentence boundary:
-                 ElevenLabs Flash v2.5 → MP3 → Vercel Blob
+                 ElevenLabs Flash v2.5 → MP3 → Supabase Storage
                  → writer.write({ type:'data-audio', transient:true, data:{ url } })
   └─ AI Elements AudioPlayer queues URLs for sequential playback
 ```
@@ -293,49 +292,49 @@ The `submitLead` tool is invoked only when all four conditions hold:
 
 The Zod schema enforces (3); the modal enforces (4). Two independent gates.
 
-### 7.2. Google Sheets schema
+### 7.2. Supabase `perla.leads` schema
 
-Single sheet, columns:
+Single Postgres table in the `perla` schema (kept out of the public Data API; reachable only via service-role key). Columns:
 
 | Column | Source |
 |---|---|
-| `timestamp_utc` | server clock, ISO 8601 |
-| `lead_id` | UUID v4, server-generated |
-| `conversation_id` | session-bound UUID |
+| `id` | uuid pk, db-generated |
+| `conversation_id` | session-bound text, unique |
 | `full_name` | tool args |
 | `phone` | tool args, normalized via `libphonenumber-js` to E.164 |
 | `email` | tool args, lowercased + validated |
-| `preferred_language` | tool args |
+| `preferred_language` | tool args (`en`/`tr`/`ru`/`de`) |
 | `interest` | tool args (enum) |
-| `chronic_illnesses` | tool args (free text, may be empty) |
-| `summary` | AI-generated, ≤ 280 chars, written by a final Haiku call before append |
+| `chronic_illnesses` | tool args (free text, nullable) |
+| `summary` | AI-generated, ≤ 280 chars |
 | `consent_text` | the verbatim string the patient confirmed |
-| `consent_given_at` | ISO 8601 |
-| `source` | UTM source / `direct` |
+| `consent_given_at` | timestamptz |
+| `source` | UTM source / default `direct` |
 | `country_code` | derived from IP, raw IP not stored |
 | `user_agent_short` | coarse (browser family + platform) |
-| `status` | initial value `new`; clinic updates manually |
-| `clinic_notes` | clinic-managed, blank at creation |
+| `status` | initial value `new`; clinic updates via SQL or studio |
+| `clinic_notes` | clinic-managed, nullable |
+| `created_at`, `updated_at` | timestamptz, db-managed |
 
-Append uses `googleapis` with a service-account JWT. The clinic shares the sheet with the service account email once.
+Inserts use `@supabase/supabase-js` with the service-role key. RLS is enabled with no policies — only the server can read/write. A companion `perla.audit_events` table (kind, conversation_id, detail jsonb) holds all audit records.
 
 ### 7.3. Email notification (Resend)
 
-Sent in parallel with the Sheet append. Subject format: `🦷 New Perla Lead: {name} — {interest} ({lang})`. From address: `leads@perladentalclinics.com` (DKIM, SPF, DMARC required). `Reply-To` header set to the patient's email so clicking Reply emails the patient directly.
+Sent in parallel with the Supabase insert. Subject format: `🦷 New Perla Lead: {name} — {interest} ({lang})`. From address: `leads@perladentalclinics.com` (DKIM, SPF, DMARC required). `Reply-To` header set to the patient's email so clicking Reply emails the patient directly.
 
 Optional patient confirmation email sent to the patient in their preferred language: short thank-you with 24-hour follow-up promise.
 
 ### 7.4. Idempotency and abuse protection
 
-- One `submitLead` per `conversation_id`. Subsequent calls in the same conversation are silently no-op.
-- IP rate limit: 3 leads/hour, enforced via Upstash Redis HTTP REST (atomic INCR with TTL). Free tier (10k commands/day) sufficient at MVP volume.
+- One `submitLead` per `conversation_id`. Subsequent calls in the same conversation are silently no-op (enforced by the unique index on `perla.leads.conversation_id`).
+- IP rate limit: 3 leads/hour, enforced via the `perla.touch_rate_limit(p_key, p_window_seconds)` Postgres RPC (atomic incr-or-reset on `perla.rate_limits`). Fails open on RPC error so a transient outage doesn't block leads.
 - Honeypot field in the consent modal; bot submissions silently dropped.
 - No CAPTCHA in v1.
 
 ### 7.5. Failure handling
 
-- Sheet append fails → email still sent → admin alert via separate Resend channel → lead retried with exponential backoff.
-- Email fails → Sheet has the lead → admin alert.
+- Supabase insert fails → email still sent → admin alert via separate Resend channel → lead retried with exponential backoff.
+- Email fails → Supabase has the lead → admin alert.
 - Both fail → full lead JSON logged to Vercel Logs → user sees: "Technical issue — please call +90 534 226 60 59 directly."
 
 ---
@@ -350,7 +349,7 @@ L1: System prompt (verbatim brief §6 + 4-language canonical refusals
                   │
 L2: Audit log    │
                   │   ─ Vercel Logs (every tool fire, every refusal)
-                  ▼   ─ Audit Sheet (only on guardrail-relevant events)
+                  ▼   ─ perla.audit_events (every guardrail/lead/escalation event)
 
 L3: Promptfoo eval suite (~640 cases, gating CI on prompt/model
     changes; nightly run against production)
@@ -378,7 +377,7 @@ When `escalateEmergency` fires:
 
 1. LLM responds with the canonical text from brief §6.
 2. Server sends URGENT-prefixed email to clinic.
-3. Audit Sheet flagged red.
+3. `perla.audit_events` row inserted with kind `emergency_escalated`.
 4. Patient is encouraged: *"In the meantime, if your pain is severe, please consider contacting emergency services or visiting the nearest clinic."*
 
 ### 8.4. Operational controls
@@ -470,14 +469,15 @@ perla-agent/
 │  │  └─ types.ts
 │  ├─ voice/
 │  │  ├─ stt.ts                            ← Deepgram REST client
-│  │  ├─ tts.ts                            ← ElevenLabs streaming → Blob
+│  │  ├─ tts.ts                            ← ElevenLabs streaming → Supabase Storage
 │  │  └─ sentence-splitter.ts
 │  ├─ leads/
 │  │  ├─ schema.ts
-│  │  ├─ sheets.ts
+│  │  ├─ supabase-leads.ts                 ← insertLead + appendAuditEvent
 │  │  ├─ email.ts
-│  │  ├─ rate-limit.ts
+│  │  ├─ rate-limit.ts                     ← perla.touch_rate_limit RPC
 │  │  └─ submit-lead.ts
+│  ├─ supabase.ts                          ← getServerClient (perla schema)
 │  ├─ i18n/
 │  │  ├─ config.ts
 │  │  ├─ detect.ts
@@ -535,7 +535,7 @@ perla-agent/
 | Layer | Tool | Volume | Catches |
 |---|---|---|---|
 | Unit | Vitest | ~120 tests | Pure logic, schema validation, prompt builder, sentence splitter |
-| Integration | Vitest + MSW | ~30 tests | API wiring, tool execution, Sheets/email contracts (mocked) |
+| Integration | Vitest + MSW | ~30 tests | API wiring, tool execution, Supabase/email contracts (mocked) |
 | E2E | Playwright on Vercel preview | ~10 tests | UX flow with stubbed LLM (`LLM_PROVIDER=stub`) |
 | LLM Evals ★ | Promptfoo | 640 cases | Persona stability, guardrails, tool-call correctness across 4 langs |
 
@@ -566,22 +566,19 @@ DEEPGRAM_API_KEY=
 ELEVENLABS_API_KEY=
 ELEVENLABS_VOICE_ID=
 
-# Lead destination
-GOOGLE_SHEETS_SA_KEY=                  # base64-encoded service account JSON
-GOOGLE_SHEETS_LEAD_SHEET_ID=
-GOOGLE_SHEETS_AUDIT_SHEET_ID=
+# Supabase (project ref: padskljpjhrbwmfhhrcz, region: us-west-2)
+SUPABASE_URL=https://padskljpjhrbwmfhhrcz.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=             # server-only; never ship to browser
+NEXT_PUBLIC_SUPABASE_URL=https://padskljpjhrbwmfhhrcz.supabase.co
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=  # safe in client bundle
+
+# Email
 RESEND_API_KEY=
 LEAD_NOTIFICATION_EMAIL=
 LEAD_FROM_EMAIL=
 
-# Storage
-BLOB_READ_WRITE_TOKEN=                 # Vercel Blob (auto-provisioned)
-
-# Rate limiting
-UPSTASH_REDIS_REST_URL=
-UPSTASH_REDIS_REST_TOKEN=
-
 # Operational
+LEAD_FORGET_TOKEN=                     # bearer token for /api/lead/forget
 AGENT_DISABLED=false                   # kill switch
 LOG_LEVEL=info
 NEXT_PUBLIC_SITE_URL=
@@ -594,7 +591,7 @@ Vercel Pro built-ins only at MVP:
 - **Vercel Logs** for structured server logs (PII redacted at the logger boundary via `pino` redact rules).
 - **Vercel Speed Insights** for Web Vitals.
 - **Vercel Analytics** for traffic.
-- **Audit Google Sheet** for guardrail-relevant events.
+- **`perla.audit_events` table** for guardrail-relevant, lead, escalation, and rate-limit events.
 
 Adding Axiom / Sentry / Helicone is deferred; clear triggers documented:
 
@@ -617,8 +614,8 @@ Single Looker Studio or Notion page, refreshed hourly:
 
 ### 12.5. Disaster recovery
 
-- Lead data is in clinic-owned Google Sheets — survives any vendor going down.
-- Weekly Apps Script backup of the sheet to a second clinic Drive folder.
+- Lead data is in clinic-owned Supabase Postgres; daily PITR backups retained per Supabase plan.
+- Weekly `pg_dump` of `perla.leads` exported to a clinic-owned offsite location.
 - Code in GitHub; Vercel rollback is one click.
 - Kill switch via env var.
 - Provider swap is one line (AI SDK abstraction).
@@ -648,9 +645,9 @@ Pressure-release valve at scale: swap ElevenLabs Flash for a cheaper TTS if voic
 |---|---|---|---|
 | 0 | Procurement: accounts, DNS, service account, sheets | Clinic + dev | All keys in Vercel env |
 | 1–2 | Text MVP: scaffold, i18n, `/api/chat` + tools, lead capture, landing page | Dev | All unit/integration tests + Promptfoo eval suite green |
-| 3–4 | Voice pipeline: Deepgram STT, ElevenLabs TTS via Blob, VAD (with Turbopack workaround validation), mic state machine | Dev | E2E voice tests pass on Chrome / Safari iOS / Firefox |
+| 3–4 | Voice pipeline: Deepgram STT, ElevenLabs TTS via Supabase Storage, VAD (with Turbopack workaround validation), mic state machine | Dev | E2E voice tests pass on Chrome / Safari iOS / Firefox |
 | 5 | Polish: brand confirmation, mobile UX, accessibility audit, privacy policy, terms, full eval re-run | Dev + design | Lighthouse ≥ 90, eval green |
-| 6 | Soft launch: production deploy, clinic team trained on Sheet workflow, monitor first 100 conversations | Clinic + dev | KPI dashboard live |
+| 6 | Soft launch: production deploy, clinic team trained on Supabase Studio lead workflow, monitor first 100 conversations | Clinic + dev | KPI dashboard live |
 | 7+ | Scale & next channel: eval corpus growth from production findings; phone channel evaluation | Ongoing | — |
 
 Each phase has a clean go/no-go gate. No phase ships unless prior phase tests are green.
@@ -678,7 +675,7 @@ Each phase has a clean go/no-go gate. No phase ships unless prior phase tests ar
 1. **Brand alignment:** Does the clinic have existing brand guidelines (palette, typography, logo system) we must mirror, or do we use the proposed defaults? Needed by Sprint 5.
 2. **DNS readiness:** Is the clinic ready to add the necessary DNS records (CNAME + SPF + DKIM + DMARC) in Sprint 0? Blocks email sending if not.
 3. **Voice ID:** Specific ElevenLabs library voice — clinic preference? Default is "warm female multilingual"; final selection in Sprint 1.
-4. **CRM later:** Once clinic uses the Sheet for 90+ days, do we migrate to a real CRM (HubSpot, Salesforce)? Decision deferred to post-launch.
+4. **CRM later:** Once clinic uses Supabase Studio for 90+ days, do we migrate to a real CRM (HubSpot, Salesforce)? Decision deferred to post-launch.
 5. **Patient confirmation email:** Send auto-thank-you to patient after lead capture? Default yes; clinic confirms.
 
 ---
