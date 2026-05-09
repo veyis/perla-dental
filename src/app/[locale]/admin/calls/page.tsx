@@ -39,13 +39,13 @@ export default async function AdminCallsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-3xl font-bold tracking-tight">AI Voice Calls</h2>
-          <p className="text-muted-foreground">
+          <p className="text-muted-foreground mt-1 text-lg">
             Monitor and review all AI voice agent interactions.
           </p>
         </div>
       </div>
 
-      <Card className="shadow-md border-none">
+      <Card className="shadow-premium border-border/40 rounded-2xl overflow-hidden bg-white/70 backdrop-blur-xl">
         <CardHeader>
           <CardTitle>Recent Conversations</CardTitle>
           <CardDescription>A list of the latest calls handled by the AI agent.</CardDescription>
@@ -108,9 +108,9 @@ export default async function AdminCallsPage() {
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
-                          <Button variant="outline" size="sm" asChild>
+                          <Button variant="outline" size="sm" className="rounded-full shadow-sm hover:shadow-md transition-shadow border-border/50 bg-white" asChild>
                             <Link href={`/admin/calls/${conv.conversation_id}`}>
-                              <FileText className="h-4 w-4 mr-1" />
+                              <FileText className="h-4 w-4 mr-1.5" />
                               Review
                             </Link>
                           </Button>

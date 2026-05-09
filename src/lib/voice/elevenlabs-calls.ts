@@ -52,7 +52,7 @@ export async function getElevenLabsConversations(): Promise<ElevenLabsConversati
     headers: {
       'xi-api-key': apiKey,
     },
-    next: { revalidate: 60 }, // Cache for 60 seconds
+    cache: 'no-store', // Always fetch fresh data for the admin dashboard
   }).finally(() => clearTimeout(timer))
 
   if (!res.ok) {
