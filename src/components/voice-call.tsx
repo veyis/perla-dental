@@ -70,13 +70,17 @@ function VoiceCallInner({ agentId, locale }: { agentId: string; locale: Locale }
 
   async function handleStart() {
     try {
+      // Acquire mic permission EXPLICITLY before startSession. This is the
+      // pattern in ElevenLabs's own integration docs and prevents a race
+      // where the SDK's internal mic acquisition can collide with audio
+      // track negotiation (resulting in 0s ASR + 0s TTS sessions even
+      // though signaling completes).
+      await navigator.mediaDevices.getUserMedia({ audio: true })
+
       // Use WebSocket transport. Empirically, WebRTC via LiveKit fails on
       // some networks even with the livekit-client@2.16.1 pin
-      // (elevenlabs/packages#645) — the signaling connects but audio tracks
-      // never negotiate, resulting in 30s sessions with 0 ASR / 0 TTS usage.
-      // WebSocket is a slight quality drop (lower priority audio, no built-in
-      // volume metering) but is reliable across all networks. Barge-in still
-      // works because VAD runs client-side.
+      // (elevenlabs/packages#645). WebSocket is a slight quality drop but
+      // reliable across all networks. Barge-in still works (VAD client-side).
       await startSession({
         agentId,
         connectionType: 'websocket',
