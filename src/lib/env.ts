@@ -16,6 +16,7 @@ const envSchema = z.object({
   // Optional — features that need them will throw at the call site.
   DEEPGRAM_API_KEY: z.string().min(1).optional(),
   ELEVENLABS_VOICE_ID: z.string().min(1).optional(),
+  NEXT_PUBLIC_ELEVENLABS_AGENT_ID: z.string().min(1).optional(),
   SUPABASE_URL: z.string().url().optional(),
   SUPABASE_SERVICE_ROLE_KEY: z.string().min(1).optional(),
   RESEND_API_KEY: z.string().min(1).optional(),
@@ -56,9 +57,7 @@ export const isAgentDisabled = () => env.AGENT_DISABLED === 'true'
 export function requireEnv<K extends keyof Env>(key: K): NonNullable<Env[K]> {
   const value = env[key]
   if (value === undefined || value === null || value === '') {
-    throw new Error(
-      `Missing required environment variable: ${String(key)}. Set it in .env.local.`,
-    )
+    throw new Error(`Missing required environment variable: ${String(key)}. Set it in .env.local.`)
   }
   return value as NonNullable<Env[K]>
 }
