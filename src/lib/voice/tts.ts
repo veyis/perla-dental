@@ -1,6 +1,8 @@
-import { put } from '@vercel/blob'
 import type { Locale } from '@/i18n/config'
 import { env } from '@/lib/env'
+import { getServerClient } from '@/lib/supabase'
+
+const BUCKET = 'perla-tts'
 
 export async function synthesizeAndStoreSentence(text: string, language: Locale): Promise<string> {
   const url = `https://api.elevenlabs.io/v1/text-to-speech/${env.ELEVENLABS_VOICE_ID}/stream?output_format=mp3_44100_128`
@@ -21,10 +23,17 @@ export async function synthesizeAndStoreSentence(text: string, language: Locale)
   if (!res.ok) throw new Error(`ElevenLabs ${res.status}`)
   const audio = await res.arrayBuffer()
   const id = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.mp3`
-  const { url: blobUrl } = await put(`tts/${id}`, audio, {
-    access: 'public',
+  const path = `${language}/${id}`
+
+  // sb.storage is a separate API and isn't affected by the perla schema
+  // override on the same client.
+  const sb = getServerClient()
+  const { error } = await sb.storage.from(BUCKET).upload(path, audio, {
     contentType: 'audio/mpeg',
-    token: env.BLOB_READ_WRITE_TOKEN,
+    upsert: false,
   })
-  return blobUrl
+  if (error) throw new Error(`Supabase storage upload failed: ${error.message}`)
+
+  const { data } = sb.storage.from(BUCKET).getPublicUrl(path)
+  return data.publicUrl
 }
