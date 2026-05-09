@@ -45,20 +45,23 @@ function VoiceCallInner({ agentId, locale }: { agentId: string; locale: Locale }
 
   const { startSession, endSession, status, isSpeaking, isListening, isMuted, setMuted } =
     useConversation({
-      onError: (err: unknown) => {
+      onError: (err: unknown, ctx?: unknown) => {
+        console.error('[VoiceCall] error:', err, ctx)
         const msg = err instanceof Error ? err.message : String(err)
-        console.error('[VoiceCall] error:', msg)
         setCallError(msg)
       },
       onConnect: ({ conversationId }) => {
         console.log('[VoiceCall] connected:', conversationId)
         setCallError(null)
       },
-      onDisconnect: () => {
-        console.log('[VoiceCall] disconnected')
+      onDisconnect: (details?: unknown) => {
+        console.log('[VoiceCall] disconnected — full details:', JSON.stringify(details, null, 2))
       },
       onModeChange: ({ mode }) => {
         console.log('[VoiceCall] mode:', mode)
+      },
+      onDebug: (event: unknown) => {
+        console.log('[VoiceCall] debug:', JSON.stringify(event))
       },
     })
 
@@ -85,6 +88,7 @@ function VoiceCallInner({ agentId, locale }: { agentId: string; locale: Locale }
         connectionType: 'websocket',
         overrides: {
           agent: { language: LOCALE_TO_LANG[locale] },
+          conversation: { textOnly: false },
         },
       })
     } catch (err) {
