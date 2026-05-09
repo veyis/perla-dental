@@ -6,6 +6,7 @@ import { logger } from './logger'
 // signals like every chat message belong in Vercel Logs, NOT here.
 export type AuditEvent =
   | { kind: 'lead_submitted'; leadId: string; conversationId: string }
+  | { kind: 'lead_consent_pending'; conversationId: string; fingerprintHint?: string }
   | { kind: 'emergency_escalated'; conversationId: string; summary: string }
   | { kind: 'guardrail_event'; conversationId: string; detail: string }
   | { kind: 'rate_limited'; ip: string }

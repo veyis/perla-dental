@@ -2,7 +2,7 @@
   "ui": {
     "title": "Perla Diş Klinikleri",
     "subtitle": "Diş tatiliniz — gerçek zamanlı rehberlik.",
-    "subcopy": "AI asistanımızla konuşun. Doktorlar sizinle iletişime geçer.",
+    "subcopy": "Premium diş bakımı, AI konsiyerjimizle. Doktorlar sizinle iletişime geçer.",
     "holdToSpeak": "Konuşmak için dokunun",
     "orTypeBelow": "veya aşağıya yazın",
     "typePlaceholder": "Tedaviler, doktorlar veya ziyaretiniz hakkında her şeyi sorun…",
@@ -33,6 +33,29 @@
     "micDenied": "Ses kullanılamıyor — bunun yerine mesajınızı yazın.",
     "transcriptionFailed": "Üzgünüm, anlayamadım. Lütfen tekrar deneyin veya mesajınızı yazın.",
     "leadSubmitFailed": "Teknik sorun — lütfen doğrudan +90 534 226 60 59 numarasını arayın."
+  },
+  "chat": {
+    "headerTitle": "Perla Konsiyerj",
+    "headerOnline": "Çevrimiçi",
+    "sectionTitle": "Konsiyerjimizle Konuşun",
+    "sectionSubtitle": "Tedaviler, uzmanlarımız ve ziyaretinizin nasıl ilerleyeceği hakkında soru sorun.",
+    "greeting": "Perla Diş Kliniklerine hoş geldiniz, kliniğin dijital asistanıyım. Size nasıl yardımcı olabilirim?",
+    "chipImplants": "İmplantlar hakkında bilgi verin",
+    "chipVeneers": "Lamine veneer ve gülüş tasarımı",
+    "chipDentalHoliday": "Diş Tatili nasıl işliyor?",
+    "chipDoctors": "Doktorlarınızdan bahsedin",
+    "placeholder": "Mesajınızı yazın…",
+    "composerLabel": "Perla Konsiyerj'e mesaj",
+    "send": "Gönder",
+    "muteOn": "Sesli yanıtlar açık",
+    "muteOff": "Sesli yanıtlar kapalı",
+    "openLauncher": "Perla Konsiyerj ile sohbeti aç",
+    "closeLauncher": "Sohbeti kapat",
+    "charCounter": "{count} / 1000",
+    "privacyLink": "Gizlilik",
+    "escalationBanner": "Durumunuz cerrahi ekibimize iletildi.",
+    "leadConfirmed": "Kaydedildi — ekibimiz bir iş günü içinde sizinle iletişime geçecek.",
+    "typingLabel": "Perla Konsiyerj yazıyor"
   },
   "trust": {
     "ministry": "T.C. Sağlık Bakanlığı",

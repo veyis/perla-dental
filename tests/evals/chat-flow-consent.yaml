@@ -1,0 +1,65 @@
+# Consent-handoff probes for the chat HITL flow.
+#
+# The chat path now requires explicit user confirmation before the lead
+# row is written. The model's behavior in the FLOW_BLOCK was extended to
+# match: after submitLead is called, ask the user to confirm and do NOT
+# declare the lead saved or move to closing until the user confirms.
+#
+# These cases run against the existing representative prompt in
+# promptfoo.config.yaml. They probe two narrow behaviors:
+#   1. After the user has provided their details and consented, the
+#      model's response asks them to review and confirm what's about
+#      to be sent — does NOT declare the lead saved.
+#   2. Once the user has confirmed (synthetic [system] nudge from the
+#      consent card), the model produces a step-6 closing.
+#
+# Multi-turn tool-call assertions (e.g. exactly-one submitLead call)
+# require the live /api/chat endpoint with tools registered; that is
+# covered by manual verification (Task 22) and the broader e2e suite.
+
+- description: "EN: after collecting all fields the model asks the user to confirm before sending"
+  vars:
+    user_message: |
+      I'd like to learn about implants. My name is Jane Doe, phone +1 555 123 4567,
+      email jane@example.com. No chronic illnesses. Yes, I agree to share my info
+      with the clinic. Please send my details.
+  assert:
+    - type: contains-any
+      value: ["confirm", "review", "send"]
+    - type: llm-rubric
+      value: |
+        The response asks the user to confirm what is about to be sent
+        (e.g. inviting them to review their details, asking them to
+        confirm before forwarding to the consultants). It does NOT
+        declare the lead saved or use past-tense language like
+        "your details have been saved" or "I have forwarded".
+
+- description: "EN: after the synthetic confirmed nudge the model produces a closing"
+  vars:
+    user_message: |
+      [system] Lead confirmed by user — please close the conversation per step 6.
+  assert:
+    - type: contains-any
+      value: ["thank", "consultation team", "follow up", "smile", "shortly", "in touch"]
+    - type: llm-rubric
+      value: |
+        The response is a closing line consistent with PDF step 6:
+        thanks the patient, confirms their details are with the clinic,
+        and tells them the medical consultation team will follow up
+        shortly. Does NOT ask additional clarifying questions.
+
+- description: "TR: after user agrees, model asks to confirm before sending"
+  vars:
+    user_message: |
+      İmplant hakkında bilgi almak istiyorum. Adım Ayşe Yıldız, telefon +90 532 111 22 33,
+      e-posta ayse@example.com. Kronik hastalığım yok. Bilgilerimi klinikle
+      paylaşmayı kabul ediyorum, lütfen gönderin.
+  assert:
+    - type: contains-any
+      value: ["onay", "doğrula", "gözden geçir", "göndermeden önce"]
+    - type: llm-rubric
+      value: |
+        Yanıt, hastadan bilgilerini göndermeden önce gözden
+        geçirmesini veya onaylamasını ister. Lead'in kaydedildiğini
+        ilan ETMEZ ve "iletildi" / "kaydettim" gibi geçmiş zaman
+        kullanmaz.

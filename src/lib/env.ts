@@ -23,6 +23,7 @@ const envSchema = z.object({
   LEAD_NOTIFICATION_EMAIL: z.string().email().optional(),
   LEAD_FROM_EMAIL: z.string().email().optional(),
   LEAD_FORGET_TOKEN: z.string().min(16).optional(),
+  LEAD_HMAC_SECRET: z.string().min(32).optional(),
 
   // Operational with safe defaults.
   AGENT_DISABLED: z.enum(['true', 'false']).default('false'),

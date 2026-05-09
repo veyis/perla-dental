@@ -43,3 +43,16 @@ One-time configuration in the [ElevenLabs dashboard](https://elevenlabs.io/app/a
 For production: enable EU residency on the ElevenLabs Enterprise tier
 (`api.eu.residency.elevenlabs.io`) and request a DPA + Zero Retention agreement
 for medical data compliance.
+
+## Chat lead-capture HMAC
+
+`LEAD_HMAC_SECRET` (32+ chars). Server signs the model-proposed lead fields when
+the chat tool returns `pending_consent`; the new `/api/lead/submit` endpoint
+verifies the same signature so only fields the model actually proposed in this
+conversation can be written. Generate with:
+
+```bash
+openssl rand -hex 32
+```
+
+Set in Vercel project env (production + preview) and `.env.local` for dev.

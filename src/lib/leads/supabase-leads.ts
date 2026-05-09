@@ -30,7 +30,12 @@ export async function insertLead(lead: LeadRowInput): Promise<LeadInsertResult> 
 }
 
 export async function appendAuditEvent(args: {
-  kind: 'lead_submitted' | 'emergency_escalated' | 'guardrail_event' | 'rate_limited'
+  kind:
+    | 'lead_submitted'
+    | 'lead_consent_pending'
+    | 'emergency_escalated'
+    | 'guardrail_event'
+    | 'rate_limited'
   conversationId?: string | null
   detail: Record<string, unknown>
 }): Promise<void> {

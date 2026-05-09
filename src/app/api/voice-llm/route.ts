@@ -72,7 +72,11 @@ export async function POST(req: Request) {
   const messages = convertOpenAIMessagesToModelMessages(body.messages ?? [])
 
   const tools = buildTools({
-    onSubmitLead: async (input) => {
+    onProposeLead: async (input) => {
+      // Voice flow: verbal consent obtained mid-call, write the row
+      // immediately and return the `saved` discriminator so the model
+      // moves to the closing step. The chat-side `pending_consent`
+      // semantics don't apply — there's no card to render in voice.
       const result = await submitLead({
         ip,
         conversationId,
@@ -83,7 +87,7 @@ export async function POST(req: Request) {
       })
       if (result.success) {
         await audit({ kind: 'lead_submitted', leadId: result.leadId, conversationId })
-        return { leadId: result.leadId }
+        return { status: 'saved' as const, fields: input, leadId: result.leadId }
       }
       throw new Error(`submitLead failed: ${result.reason}`)
     },

@@ -2,7 +2,7 @@
   "ui": {
     "title": "Perla Dental Clinics",
     "subtitle": "Ihr Zahnurlaub — in Echtzeit begleitet.",
-    "subcopy": "Sprechen Sie mit unserem KI-Assistenten. Ärzte melden sich.",
+    "subcopy": "Hochwertige Zahnmedizin, begleitet von unserem KI-Concierge. Ärzte melden sich.",
     "holdToSpeak": "Zum Sprechen tippen",
     "orTypeBelow": "oder unten tippen",
     "typePlaceholder": "Fragen Sie zu Behandlungen, Ärzten oder Ihrem Besuch…",
@@ -33,6 +33,29 @@
     "micDenied": "Sprache nicht verfügbar — bitte schreiben Sie Ihre Nachricht.",
     "transcriptionFailed": "Entschuldigung, das habe ich nicht verstanden. Bitte versuchen Sie es erneut oder schreiben Sie.",
     "leadSubmitFailed": "Technisches Problem — bitte rufen Sie direkt +90 534 226 60 59 an."
+  },
+  "chat": {
+    "headerTitle": "Perla Concierge",
+    "headerOnline": "Online",
+    "sectionTitle": "Sprechen Sie mit unserem Concierge",
+    "sectionSubtitle": "Fragen Sie zu Behandlungen, unseren Spezialisten und zum Ablauf Ihres Besuchs.",
+    "greeting": "Willkommen bei Perla Dental Clinics, ich bin der digitale Assistent der Klinik. Wie kann ich Ihnen helfen?",
+    "chipImplants": "Mehr über Implantate",
+    "chipVeneers": "Veneers & Smile-Makeover",
+    "chipDentalHoliday": "Wie funktioniert der Zahnurlaub?",
+    "chipDoctors": "Mehr über Ihre Ärzte",
+    "placeholder": "Nachricht eingeben…",
+    "composerLabel": "Nachricht an Perla Concierge",
+    "send": "Senden",
+    "muteOn": "Sprachantworten an",
+    "muteOff": "Sprachantworten aus",
+    "openLauncher": "Chat mit Perla Concierge öffnen",
+    "closeLauncher": "Chat schließen",
+    "charCounter": "{count} / 1000",
+    "privacyLink": "Datenschutz",
+    "escalationBanner": "Ihr Fall wurde an unser Chirurgieteam weitergeleitet.",
+    "leadConfirmed": "Gespeichert — unser Team meldet sich innerhalb eines Werktags.",
+    "typingLabel": "Perla Concierge tippt"
   },
   "trust": {
     "ministry": "Türkisches Gesundheitsministerium",
