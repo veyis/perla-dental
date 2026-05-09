@@ -3,6 +3,7 @@ import { DM_Serif_Display, Inter } from 'next/font/google'
 import { hasLocale, NextIntlClientProvider } from 'next-intl'
 import { getMessages } from 'next-intl/server'
 import { notFound } from 'next/navigation'
+import { CookieBanner } from '@/components/cookie-banner'
 import { locales } from '@/i18n/config'
 import '../globals.css'
 
@@ -38,7 +39,10 @@ export default async function RootLayout({
   return (
     <html lang={locale} className={`${inter.variable} ${serif.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col">
-        <NextIntlClientProvider messages={messages}>{children}</NextIntlClientProvider>
+        <NextIntlClientProvider messages={messages}>
+          {children}
+          <CookieBanner />
+        </NextIntlClientProvider>
       </body>
     </html>
   )
