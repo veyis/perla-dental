@@ -1,7 +1,11 @@
-import { createClient } from '@supabase/supabase-js'
+import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import { env } from '@/lib/env'
 
-let cached: ReturnType<typeof createClient> | null = null
+// We don't have generated Database types yet, so the client is typed as
+// SupabaseClient<any, any, any> — table rows are unchecked at compile
+// time. Generate via `supabase gen types typescript` if/when desired.
+// biome-ignore lint/suspicious/noExplicitAny: untyped DB schema
+let cached: SupabaseClient<any, any, any> | null = null
 
 /**
  * Server-only Supabase client. Bound to the `perla` schema so
@@ -9,11 +13,13 @@ let cached: ReturnType<typeof createClient> | null = null
  * (`sb.storage`) are unaffected by the schema override and route
  * to the `storage` API independently.
  */
-export function getServerClient() {
+// biome-ignore lint/suspicious/noExplicitAny: untyped DB schema
+export function getServerClient(): SupabaseClient<any, any, any> {
   if (cached) return cached
   cached = createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY, {
     auth: { persistSession: false, autoRefreshToken: false },
-    db: { schema: 'perla' },
+    // biome-ignore lint/suspicious/noExplicitAny: schema not in default Database
+    db: { schema: 'perla' as any },
   })
   return cached
 }

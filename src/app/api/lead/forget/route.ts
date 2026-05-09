@@ -18,8 +18,7 @@ export async function POST(req: Request) {
   const token = auth.startsWith('Bearer ') ? auth.slice(7) : ''
   const expected = env.LEAD_FORGET_TOKEN
   const ok =
-    token.length === expected.length &&
-    timingSafeEqual(Buffer.from(token), Buffer.from(expected))
+    token.length === expected.length && timingSafeEqual(Buffer.from(token), Buffer.from(expected))
   if (!ok) return Response.json({ error: 'unauthorized' }, { status: 401 })
 
   let body: unknown

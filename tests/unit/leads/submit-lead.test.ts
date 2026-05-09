@@ -1,12 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-const { appendLeadRow, sendEmail, allowLead } = vi.hoisted(() => ({
-  appendLeadRow: vi.fn(),
+const { insertLead, sendEmail, allowLead } = vi.hoisted(() => ({
+  insertLead: vi.fn(),
   sendEmail: vi.fn(),
   allowLead: vi.fn(),
 }))
 
-vi.mock('@/lib/leads/sheets', () => ({ appendLeadRow }))
+vi.mock('@/lib/leads/supabase-leads', () => ({ insertLead }))
 vi.mock('@/lib/leads/rate-limit', () => ({ allowLead }))
 vi.mock('@/lib/leads/email-sender', () => ({ sendEmail }))
 vi.mock('@/lib/env', () => ({
@@ -20,15 +20,15 @@ vi.mock('@/lib/env', () => ({
 import { submitLead } from '@/lib/leads/submit-lead'
 
 beforeEach(() => {
-  appendLeadRow.mockReset()
+  insertLead.mockReset()
   sendEmail.mockReset()
   allowLead.mockReset()
 })
 
 describe('submitLead', () => {
-  it('appends to Sheet and sends emails when allowed', async () => {
+  it('inserts to Supabase and sends emails when allowed', async () => {
     allowLead.mockResolvedValue(true)
-    appendLeadRow.mockResolvedValue(undefined)
+    insertLead.mockResolvedValue({ id: 'uuid-1' })
     sendEmail.mockResolvedValue({ id: 'e1' })
 
     const result = await submitLead({
@@ -47,7 +47,10 @@ describe('submitLead', () => {
     })
 
     expect(result.success).toBe(true)
-    expect(appendLeadRow).toHaveBeenCalledOnce()
+    if (result.success === true) {
+      expect(result.leadId).toBe('uuid-1')
+    }
+    expect(insertLead).toHaveBeenCalledOnce()
     expect(sendEmail).toHaveBeenCalledTimes(2) // clinic + patient
   })
 
@@ -71,12 +74,12 @@ describe('submitLead', () => {
     if (result.success === false) {
       expect(result.reason).toBe('rate_limited')
     }
-    expect(appendLeadRow).not.toHaveBeenCalled()
+    expect(insertLead).not.toHaveBeenCalled()
   })
 
-  it('still emails clinic when Sheet append fails', async () => {
+  it('still emails clinic when Supabase insert fails', async () => {
     allowLead.mockResolvedValue(true)
-    appendLeadRow.mockRejectedValue(new Error('sheets down'))
+    insertLead.mockRejectedValue(new Error('supabase down'))
     sendEmail.mockResolvedValue({ id: 'e1' })
 
     const result = await submitLead({
