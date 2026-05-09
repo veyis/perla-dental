@@ -10,7 +10,9 @@
     "format": "biome format --write src tests",
     "test": "vitest",
     "test:run": "vitest run",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "eval": "promptfoo eval -c tests/evals/promptfoo.config.yaml",
+    "eval:smoke": "promptfoo eval -c tests/evals/promptfoo.config.yaml --filter-tests \"smoke\""
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^3.0.76",
