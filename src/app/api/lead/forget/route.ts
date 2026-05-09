@@ -1,5 +1,5 @@
 import { timingSafeEqual } from 'node:crypto'
-import { env } from '@/lib/env'
+import { requireEnv } from '@/lib/env'
 import { getServerClient } from '@/lib/supabase'
 
 /**
@@ -14,7 +14,7 @@ import { getServerClient } from '@/lib/supabase'
 export async function POST(req: Request) {
   const auth = req.headers.get('authorization') ?? ''
   const token = auth.startsWith('Bearer ') ? auth.slice(7) : ''
-  const expected = env.LEAD_FORGET_TOKEN
+  const expected = requireEnv('LEAD_FORGET_TOKEN')
   const ok =
     token.length === expected.length && timingSafeEqual(Buffer.from(token), Buffer.from(expected))
   if (!ok) return Response.json({ error: 'unauthorized' }, { status: 401 })

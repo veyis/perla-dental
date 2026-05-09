@@ -9,13 +9,22 @@ const { insertLead, sendEmail, allowLead } = vi.hoisted(() => ({
 vi.mock('@/lib/leads/supabase-leads', () => ({ insertLead }))
 vi.mock('@/lib/leads/rate-limit', () => ({ allowLead }))
 vi.mock('@/lib/leads/email-sender', () => ({ sendEmail }))
-vi.mock('@/lib/env', () => ({
-  env: {
+vi.mock('@/lib/env', () => {
+  const fakeEnv: Record<string, string> = {
     LEAD_NOTIFICATION_EMAIL: 'clinic@p.com',
     LEAD_FROM_EMAIL: 'leads@p.com',
     LOG_LEVEL: 'silent',
-  },
-}))
+  }
+  return {
+    env: fakeEnv,
+    requireEnv: (key: string) => {
+      const v = fakeEnv[key]
+      if (!v) throw new Error(`Missing required env var: ${key}`)
+      return v
+    },
+    isAgentDisabled: () => false,
+  }
+})
 
 import { submitLead } from '@/lib/leads/submit-lead'
 

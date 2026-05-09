@@ -1,5 +1,5 @@
 import type { SubmitLeadInput } from '@/lib/agent/tools'
-import { env } from '@/lib/env'
+import { requireEnv } from '@/lib/env'
 import { logger } from '@/lib/observability/logger'
 import { renderClinicEmail, renderPatientEmail } from './email'
 import { sendEmail } from './email-sender'
@@ -70,17 +70,18 @@ export async function submitLead(args: {
   const patient = renderPatientEmail(emailLead)
 
   try {
+    const fromEmail = requireEnv('LEAD_FROM_EMAIL')
     await Promise.all([
       sendEmail({
-        to: env.LEAD_NOTIFICATION_EMAIL,
-        from: env.LEAD_FROM_EMAIL,
+        to: requireEnv('LEAD_NOTIFICATION_EMAIL'),
+        from: fromEmail,
         subject: clinic.subject,
         text: clinic.text,
         replyTo: clinic.replyTo,
       }),
       sendEmail({
         to: args.input.email,
-        from: env.LEAD_FROM_EMAIL,
+        from: fromEmail,
         subject: patient.subject,
         text: patient.text,
       }),
