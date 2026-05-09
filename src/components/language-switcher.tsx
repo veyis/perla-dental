@@ -1,9 +1,11 @@
 'use client'
 
 import { AnimatePresence, motion } from 'framer-motion'
-import { usePathname, useRouter } from 'next/navigation'
-import { useEffect, useRef, useState } from 'react'
+import { useParams, useSearchParams } from 'next/navigation'
+import { useEffect, useRef, useState, useTransition } from 'react'
 import type { Locale } from '@/i18n/config'
+import { usePathname, useRouter } from '@/i18n/navigation'
+import { routing } from '@/i18n/routing'
 
 const FLAGS: Record<Locale, string> = { en: '🇬🇧', tr: '🇹🇷', ru: '🇷🇺', de: '🇩🇪' }
 const NAMES: Record<Locale, string> = {
@@ -12,12 +14,14 @@ const NAMES: Record<Locale, string> = {
   ru: 'Русский',
   de: 'Deutsch',
 }
-const ORDER: Locale[] = ['en', 'tr', 'ru', 'de']
 
 export function LanguageSwitcher({ current }: { current: Locale }) {
   const router = useRouter()
-  const pathname = usePathname()
+  const pathname = usePathname() // locale-stripped (e.g. '/contact' even when on /tr/contact)
+  const params = useParams()
+  const searchParams = useSearchParams()
   const [open, setOpen] = useState(false)
+  const [isPending, startTransition] = useTransition()
   const containerRef = useRef<HTMLDivElement>(null)
 
   // Close on outside click
@@ -45,8 +49,19 @@ export function LanguageSwitcher({ current }: { current: Locale }) {
   function switchTo(locale: Locale) {
     setOpen(false)
     if (locale === current) return
-    const newPath = pathname.replace(/^\/(en|tr|ru|de)/, `/${locale}`) || `/${locale}`
-    router.push(newPath)
+
+    // Preserve search params; the next-intl router doesn't auto-carry them.
+    const qs = searchParams.toString()
+    const pathWithQuery = qs ? `${pathname}?${qs}` : pathname
+
+    startTransition(() => {
+      router.replace(
+        // Dynamic-segment overload: pass `params` so /[slug] etc. survive the swap.
+        // biome-ignore lint/suspicious/noExplicitAny: next-intl typed overload requires this shape
+        { pathname: pathWithQuery, params } as any,
+        { locale, scroll: false },
+      )
+    })
   }
 
   return (
@@ -54,10 +69,11 @@ export function LanguageSwitcher({ current }: { current: Locale }) {
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
+        disabled={isPending}
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-label={`Language: ${NAMES[current]}`}
-        className="flex items-center gap-2 px-3 py-2 rounded-full text-sm font-medium border border-black/10 bg-white/60 hover:bg-white transition-colors"
+        className="flex items-center gap-2 px-3 py-2 rounded-full text-sm font-medium border border-black/10 bg-white/60 hover:bg-white transition-colors disabled:opacity-50"
       >
         <span className="text-base leading-none" aria-hidden>
           {FLAGS[current]}
@@ -76,7 +92,7 @@ export function LanguageSwitcher({ current }: { current: Locale }) {
             transition={{ duration: 0.12 }}
             className="absolute right-0 mt-2 w-44 rounded-2xl bg-white shadow-xl border border-black/5 py-1.5 z-50 overflow-hidden"
           >
-            {ORDER.map((l) => {
+            {routing.locales.map((l) => {
               const isActive = l === current
               return (
                 <li key={l}>
