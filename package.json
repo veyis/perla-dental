@@ -7,7 +7,10 @@
     "build": "next build --turbopack",
     "start": "next start",
     "lint": "biome check src app tests",
-    "format": "biome format --write src app tests"
+    "format": "biome format --write src app tests",
+    "test": "vitest",
+    "test:run": "vitest run",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^3.0.76",
