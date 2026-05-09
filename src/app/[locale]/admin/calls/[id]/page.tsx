@@ -4,10 +4,21 @@ import { notFound } from 'next/navigation'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import {
-  type ElevenLabsConversation,
-  getElevenLabsConversation,
-} from '@/lib/voice/elevenlabs-calls'
+import { type ElevenLabsCallStatus, getElevenLabsConversation } from '@/lib/voice/elevenlabs-calls'
+
+function statusVariant(status: ElevenLabsCallStatus): 'default' | 'secondary' | 'destructive' {
+  if (status === 'done') return 'default'
+  if (status === 'failed') return 'destructive'
+  return 'secondary'
+}
+
+function formatDuration(seconds: number): string {
+  if (!Number.isFinite(seconds) || seconds < 0) return '—'
+  if (seconds < 60) return `${Math.round(seconds)}s`
+  const m = Math.floor(seconds / 60)
+  const s = Math.round(seconds % 60)
+  return `${m}m ${s.toString().padStart(2, '0')}s`
+}
 
 export default async function AdminCallDetailPage({
   params,
@@ -20,6 +31,9 @@ export default async function AdminCallDetailPage({
   if (!conversation) {
     notFound()
   }
+
+  const startMs = conversation.metadata.start_time_unix_secs * 1000
+  const durationSecs = conversation.metadata.call_duration_secs
 
   return (
     <div className="flex flex-col gap-6 py-6">
@@ -96,7 +110,7 @@ export default async function AdminCallDetailPage({
                   <span>Date</span>
                 </div>
                 <span className="text-sm font-medium">
-                  {new Date(conversation.start_time_unix_ms).toLocaleDateString()}
+                  {new Date(startMs).toLocaleDateString()}
                 </span>
               </div>
               <div className="flex items-center justify-between py-2 border-b">
@@ -105,7 +119,7 @@ export default async function AdminCallDetailPage({
                   <span>Start Time</span>
                 </div>
                 <span className="text-sm font-medium">
-                  {new Date(conversation.start_time_unix_ms).toLocaleTimeString()}
+                  {new Date(startMs).toLocaleTimeString()}
                 </span>
               </div>
               <div className="flex items-center justify-between py-2 border-b">
@@ -113,18 +127,14 @@ export default async function AdminCallDetailPage({
                   <Clock className="h-4 w-4" />
                   <span>Duration</span>
                 </div>
-                <span className="text-sm font-medium">
-                  {Math.round(conversation.duration_seconds)}s
-                </span>
+                <span className="text-sm font-medium">{formatDuration(durationSecs)}</span>
               </div>
               <div className="flex items-center justify-between py-2">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <User className="h-4 w-4" />
                   <span>Status</span>
                 </div>
-                <Badge variant={conversation.status === 'completed' ? 'default' : 'secondary'}>
-                  {conversation.status}
-                </Badge>
+                <Badge variant={statusVariant(conversation.status)}>{conversation.status}</Badge>
               </div>
             </CardContent>
           </Card>

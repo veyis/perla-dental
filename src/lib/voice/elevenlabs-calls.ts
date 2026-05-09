@@ -1,22 +1,46 @@
 import { requireEnv } from '@/lib/env'
 
-export type ElevenLabsConversation = {
+export type ElevenLabsCallStatus = 'initiated' | 'in-progress' | 'processing' | 'done' | 'failed'
+
+export type ElevenLabsConversationListItem = {
   conversation_id: string
   agent_id: string
-  status: 'processing' | 'completed'
-  start_time_unix_ms: number
-  duration_seconds: number
+  agent_name: string | null
+  start_time_unix_secs: number
+  call_duration_secs: number
+  message_count: number
+  status: ElevenLabsCallStatus
+  call_successful: 'success' | 'failure' | 'unknown' | null
+  call_summary_title: string | null
+  main_language: string | null
+  direction: 'inbound' | 'outbound' | null
+}
+
+export type ElevenLabsConversationDetail = {
+  conversation_id: string
+  agent_id: string
+  agent_name: string | null
+  status: ElevenLabsCallStatus
+  has_audio: boolean
   transcript: Array<{
     role: 'user' | 'agent'
     message: string
     time_in_call_secs: number
   }>
   metadata: {
-    caller_id?: string
+    start_time_unix_secs: number
+    call_duration_secs: number
+    phone_call: {
+      external_number?: string | null
+      direction?: 'inbound' | 'outbound' | null
+    } | null
+    conversation_initiation_source: string | null
+    main_language: string | null
+    termination_reason: string | null
   }
 }
 
-export async function getElevenLabsConversations() {
+export async function getElevenLabsConversations(): Promise<ElevenLabsConversationListItem[]> {
   const apiKey = requireEnv('ELEVENLABS_API_KEY')
   const agentId = requireEnv('NEXT_PUBLIC_ELEVENLABS_AGENT_ID')
 
@@ -37,11 +61,13 @@ export async function getElevenLabsConversations() {
     return []
   }
 
-  const data = await res.json()
-  return data.conversations || []
+  const data = (await res.json()) as { conversations?: ElevenLabsConversationListItem[] }
+  return data.conversations ?? []
 }
 
-export async function getElevenLabsConversation(conversationId: string) {
+export async function getElevenLabsConversation(
+  conversationId: string,
+): Promise<ElevenLabsConversationDetail | null> {
   const apiKey = requireEnv('ELEVENLABS_API_KEY')
 
   const ac = new AbortController()
@@ -58,7 +84,7 @@ export async function getElevenLabsConversation(conversationId: string) {
     return null
   }
 
-  return res.json() as Promise<ElevenLabsConversation>
+  return res.json() as Promise<ElevenLabsConversationDetail>
 }
 
 export async function getElevenLabsRecordingUrl(conversationId: string) {

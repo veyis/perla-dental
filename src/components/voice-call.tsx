@@ -29,8 +29,12 @@ const LOCALE_TO_LANG: Record<Locale, 'en' | 'tr' | 'ru' | 'de'> = {
  * which proxies to Claude Haiku 4.5. Barge-in, VAD, end-of-utterance
  * detection, and reconnection are handled by the SDK + WebSocket transport.
  */
-export function VoiceCall({ locale }: { locale: Locale }) {
-  const agentId = process.env.NEXT_PUBLIC_ELEVENLABS_AGENT_ID
+export function VoiceCall({ locale, agentId: propAgentId }: { locale: Locale; agentId?: string }) {
+  // Prefer the prop (server-rendered, request-time) over the build-time
+  // inlined env var. This is what makes the page survive a Vercel build
+  // that ran before NEXT_PUBLIC_ELEVENLABS_AGENT_ID was set — the prop is
+  // read on the server at request time, not bundled at build.
+  const agentId = propAgentId ?? process.env.NEXT_PUBLIC_ELEVENLABS_AGENT_ID
   if (!agentId) {
     return (
       <div className="text-sm text-text-muted italic">

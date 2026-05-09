@@ -1,4 +1,4 @@
-import { Calendar, Clock, FileText } from 'lucide-react'
+import { Calendar, Clock, FileText, Globe, Phone } from 'lucide-react'
 import Link from 'next/link'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -12,9 +12,24 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import {
-  type ElevenLabsConversation,
+  type ElevenLabsCallStatus,
+  type ElevenLabsConversationListItem,
   getElevenLabsConversations,
 } from '@/lib/voice/elevenlabs-calls'
+
+function statusVariant(status: ElevenLabsCallStatus): 'default' | 'secondary' | 'destructive' {
+  if (status === 'done') return 'default'
+  if (status === 'failed') return 'destructive'
+  return 'secondary'
+}
+
+function formatDuration(seconds: number): string {
+  if (!Number.isFinite(seconds) || seconds < 0) return '—'
+  if (seconds < 60) return `${Math.round(seconds)}s`
+  const m = Math.floor(seconds / 60)
+  const s = Math.round(seconds % 60)
+  return `${m}m ${s.toString().padStart(2, '0')}s`
+}
 
 export default async function AdminCallsPage() {
   const conversations = await getElevenLabsConversations()
@@ -40,7 +55,8 @@ export default async function AdminCallsPage() {
             <TableHeader>
               <TableRow>
                 <TableHead>Date & Time</TableHead>
-                <TableHead>Caller ID</TableHead>
+                <TableHead>Source</TableHead>
+                <TableHead>Summary</TableHead>
                 <TableHead>Duration</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
@@ -49,48 +65,60 @@ export default async function AdminCallsPage() {
             <TableBody>
               {conversations.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center py-10 text-muted-foreground">
+                  <TableCell colSpan={6} className="text-center py-10 text-muted-foreground">
                     No conversations found.
                   </TableCell>
                 </TableRow>
               ) : (
-                conversations.map((conv: ElevenLabsConversation) => (
-                  <TableRow
-                    key={conv.conversation_id}
-                    className="hover:bg-muted/50 transition-colors"
-                  >
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <Calendar className="h-4 w-4 text-muted-foreground" />
-                        <span>{new Date(conv.start_time_unix_ms).toLocaleString()}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell className="font-medium">
-                      {conv.metadata?.caller_id || 'Anonymous'}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <Clock className="h-4 w-4 text-muted-foreground" />
-                        <span>{Math.round(conv.duration_seconds)}s</span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={conv.status === 'completed' ? 'default' : 'secondary'}>
-                        {conv.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
-                        <Button variant="outline" size="sm" asChild>
-                          <Link href={`/admin/calls/${conv.conversation_id}`}>
-                            <FileText className="h-4 w-4 mr-1" />
-                            Review
-                          </Link>
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))
+                conversations.map((conv: ElevenLabsConversationListItem) => {
+                  const startMs = conv.start_time_unix_secs * 1000
+                  const isPhone = conv.direction != null
+                  return (
+                    <TableRow
+                      key={conv.conversation_id}
+                      className="hover:bg-muted/50 transition-colors"
+                    >
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <Calendar className="h-4 w-4 text-muted-foreground" />
+                          <span>{new Date(startMs).toLocaleString()}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell className="font-medium">
+                        <div className="flex items-center gap-2">
+                          {isPhone ? (
+                            <Phone className="h-4 w-4 text-muted-foreground" />
+                          ) : (
+                            <Globe className="h-4 w-4 text-muted-foreground" />
+                          )}
+                          <span>{isPhone ? `Phone (${conv.direction})` : 'Web widget'}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell className="max-w-[280px] truncate text-muted-foreground">
+                        {conv.call_summary_title ?? '—'}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <Clock className="h-4 w-4 text-muted-foreground" />
+                          <span>{formatDuration(conv.call_duration_secs)}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={statusVariant(conv.status)}>{conv.status}</Badge>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-2">
+                          <Button variant="outline" size="sm" asChild>
+                            <Link href={`/admin/calls/${conv.conversation_id}`}>
+                              <FileText className="h-4 w-4 mr-1" />
+                              Review
+                            </Link>
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  )
+                })
               )}
             </TableBody>
           </Table>

@@ -12,9 +12,10 @@ interface HeroProps {
   subtitle: string
   status: string
   locale: Locale
+  agentId?: string
 }
 
-export function Hero({ title, subtitle, status, locale }: HeroProps) {
+export function Hero({ title, subtitle, status, locale, agentId }: HeroProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const { scrollY } = useScroll()
 
@@ -113,7 +114,7 @@ export function Hero({ title, subtitle, status, locale }: HeroProps) {
             >
               <div className="relative group">
                 <div className="absolute -inset-1 bg-gradient-to-r from-primary via-highlight to-primary-light rounded-full blur opacity-20 group-hover:opacity-60 transition duration-1000 group-hover:duration-200 animate-tilt"></div>
-                <VoiceCall locale={locale} />
+                <VoiceCall locale={locale} agentId={agentId} />
               </div>
 
               <div className="flex items-center gap-5 p-5 pr-8 rounded-[2rem] glass border border-white/50 shadow-premium hover:shadow-2xl transition-all duration-500 cursor-pointer group">
