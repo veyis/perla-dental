@@ -15,8 +15,8 @@ describe('knowledge', () => {
     )
   })
 
-  it('exposes seven doctors', () => {
-    expect(DOCTORS.length).toBe(7)
+  it('exposes fifteen doctors', () => {
+    expect(DOCTORS.length).toBe(15)
     expect(DOCTORS[0].name).toContain('Onur Ademhan')
   })
 

@@ -23,11 +23,14 @@ describe('renderMarkdownLite', () => {
     expect(html.match(/"li"/g)?.length).toBe(2)
   })
 
-  it('escapes HTML', () => {
+  it('renders HTML characters safely — React escapes at render time', () => {
     const out = renderMarkdownLite('Hello <script>alert(1)</script>')
-    const html = JSON.stringify(out)
-    expect(html).not.toContain('<script>')
-    expect(html).toContain('&lt;script&gt;')
+    const json = JSON.stringify(out)
+    // escapeHtml was removed because React escapes string text nodes at render
+    // time; pre-escaping caused double-escaping (&lt; showing literally in UI).
+    // Verify no dangerouslySetInnerHTML is used anywhere in the output.
+    expect(json).not.toContain('dangerouslySetInnerHTML')
+    expect(json).toContain('Hello')
   })
 
   it('renders single-line text without paragraph wrapper crashing', () => {

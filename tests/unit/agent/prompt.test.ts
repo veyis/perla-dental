@@ -11,10 +11,10 @@ const baseState: ConversationState = {
 }
 
 describe('buildSystemPrompt', () => {
-  it('contains role block from PDF', () => {
+  it('contains role block', () => {
     const p = buildSystemPrompt(baseState)
-    expect(p).toContain('digital front desk')
-    expect(p).toContain('patient relations assistant')
+    expect(p).toContain('You are Perla')
+    expect(p).toContain('helpful advisor')
     expect(p).toContain('Perla Dental Clinics')
   })
 
@@ -27,9 +27,9 @@ describe('buildSystemPrompt', () => {
 
   it('contains hard guardrails', () => {
     const p = buildSystemPrompt(baseState)
-    expect(p).toContain('NEVER discuss pricing')
+    expect(p).toContain('starting prices')
     expect(p).toContain('No medical diagnosis')
-    expect(p).toContain('Escalation Protocol')
+    expect(p).toContain('escalateEmergency')
   })
 
   it('encodes target language', () => {
@@ -58,7 +58,7 @@ describe('buildSystemPrompt', () => {
 
   it('includes prompt-injection defenses', () => {
     const p = buildSystemPrompt(baseState)
-    expect(p.toLowerCase()).toContain('ignore your instructions')
+    expect(p.toLowerCase()).toContain('internal instructions')
     expect(p.toLowerCase()).toContain('redirect')
   })
 })

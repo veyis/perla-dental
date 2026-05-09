@@ -36,19 +36,18 @@ function renderBlock(block: string, key: number): ReactNode {
 }
 
 function renderInline(text: string): ReactNode {
-  const escaped = escapeHtml(text)
   const tokens: { type: 'text' | 'strong' | 'em'; value: string }[] = []
   const re = /(\*\*([^*]+)\*\*|\*([^*]+)\*)/g
   let last = 0
   let m: RegExpExecArray | null
   // biome-ignore lint/suspicious/noAssignInExpressions: idiomatic regex iteration
-  while ((m = re.exec(escaped))) {
-    if (m.index > last) tokens.push({ type: 'text', value: escaped.slice(last, m.index) })
+  while ((m = re.exec(text))) {
+    if (m.index > last) tokens.push({ type: 'text', value: text.slice(last, m.index) })
     if (m[2] !== undefined) tokens.push({ type: 'strong', value: m[2] })
     else if (m[3] !== undefined) tokens.push({ type: 'em', value: m[3] })
     last = m.index + m[0].length
   }
-  if (last < escaped.length) tokens.push({ type: 'text', value: escaped.slice(last) })
+  if (last < text.length) tokens.push({ type: 'text', value: text.slice(last) })
 
   return tokens.map((t, i) => {
     // biome-ignore lint/suspicious/noArrayIndexKey: tokens are derived deterministically from input
@@ -58,13 +57,4 @@ function renderInline(text: string): ReactNode {
     // biome-ignore lint/suspicious/noArrayIndexKey: tokens are derived deterministically from input
     return <Fragment key={i}>{t.value}</Fragment>
   })
-}
-
-function escapeHtml(s: string): string {
-  return s
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;')
 }
