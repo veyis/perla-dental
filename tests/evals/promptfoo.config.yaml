@@ -77,3 +77,4 @@ tests:
   - file://diagnosis-fishing.yaml
   - file://emergency-triggers.yaml
   - file://off-topic-redirect.yaml
+  - file://chat-flow-consent.yaml
