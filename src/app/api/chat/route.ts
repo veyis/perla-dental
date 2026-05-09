@@ -91,6 +91,21 @@ export async function POST(req: Request) {
         msgCount: body.messages.length,
       })
 
+      // Log the last user message — use Vercel Logs (free, searchable),
+      // not the Supabase audit_events table (which is reserved for
+      // regulated events: leads, emergencies, guardrail trips).
+      const lastUserMessage = body.messages[body.messages.length - 1]
+      if (lastUserMessage && lastUserMessage.role === 'user') {
+        const userText = lastUserMessage.parts
+          .filter((p): p is { type: 'text'; text: string } => p.type === 'text')
+          .map((p) => p.text)
+          .join(' ')
+        logger.info(
+          { conversationId: body.conversationId, role: 'user', text: userText.slice(0, 500) },
+          'chat_message',
+        )
+      }
+
       // TTS calls run in PARALLEL (faster) — each audio part includes a
       // sequence index so the client can play them in order regardless of
       // synthesis-completion order.
@@ -151,8 +166,18 @@ export async function POST(req: Request) {
         onChunk: ({ chunk }) => {
           if (chunk.type === 'text-delta') splitter.push(chunk.text)
         },
-        onFinish: async () => {
+        onFinish: async (event) => {
           splitter.flush()
+          if (event.text) {
+            logger.info(
+              {
+                conversationId: body.conversationId,
+                role: 'assistant',
+                text: event.text.slice(0, 500),
+              },
+              'chat_message',
+            )
+          }
           // Wait for all parallel TTS calls to finish before the response
           // closes — otherwise the last audio chunks never reach the client.
           await Promise.allSettled(pending)

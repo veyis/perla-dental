@@ -42,3 +42,24 @@ export async function appendAuditEvent(args: {
   })
   if (error) throw new Error(`Audit insert failed: ${error.message}`)
 }
+
+export async function getAuditEvents(kind?: string) {
+  const sb = getServerClient()
+  let query = sb.from('audit_events').select('*').order('created_at', { ascending: false })
+  if (kind) {
+    query = query.eq('kind', kind)
+  }
+  const { data, error } = await query
+  if (error) throw new Error(`Failed to fetch audit events: ${error.message}`)
+  return data
+}
+
+export async function getLeads() {
+  const sb = getServerClient()
+  const { data, error } = await sb
+    .from('leads')
+    .select('*')
+    .order('created_at', { ascending: false })
+  if (error) throw new Error(`Failed to fetch leads: ${error.message}`)
+  return data
+}

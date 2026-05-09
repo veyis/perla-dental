@@ -1,6 +1,9 @@
 import { appendAuditEvent } from '@/lib/leads/supabase-leads'
 import { logger } from './logger'
 
+// Audited events are persisted to the Supabase `perla.audit_events` table
+// (kind column has a CHECK constraint matching this list). High-volume
+// signals like every chat message belong in Vercel Logs, NOT here.
 export type AuditEvent =
   | { kind: 'lead_submitted'; leadId: string; conversationId: string }
   | { kind: 'emergency_escalated'; conversationId: string; summary: string }
