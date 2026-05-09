@@ -1,7 +1,8 @@
 import type { Metadata } from 'next'
-import { Geist, Geist_Mono } from 'next/font/google'
-import { NextIntlClientProvider } from 'next-intl'
+import { DM_Serif_Display, Inter } from 'next/font/google'
+import { hasLocale, NextIntlClientProvider } from 'next-intl'
 import { getMessages } from 'next-intl/server'
+import { notFound } from 'next/navigation'
 import { locales } from '@/i18n/config'
 import '../globals.css'
 
@@ -9,14 +10,14 @@ export function generateStaticParams() {
   return locales.map((locale) => ({ locale }))
 }
 
-const geistSans = Geist({
-  variable: '--font-geist-sans',
-  subsets: ['latin'],
+const inter = Inter({
+  subsets: ['latin', 'latin-ext', 'cyrillic'],
+  variable: '--font-body',
 })
-
-const geistMono = Geist_Mono({
-  variable: '--font-geist-mono',
+const serif = DM_Serif_Display({
+  weight: '400',
   subsets: ['latin'],
+  variable: '--font-heading',
 })
 
 export const metadata: Metadata = {
@@ -32,12 +33,10 @@ export default async function RootLayout({
   params: Promise<{ locale: string }>
 }) {
   const { locale } = await params
+  if (!hasLocale(locales, locale)) notFound()
   const messages = await getMessages()
   return (
-    <html
-      lang={locale}
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
-    >
+    <html lang={locale} className={`${inter.variable} ${serif.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col">
         <NextIntlClientProvider messages={messages}>{children}</NextIntlClientProvider>
       </body>
