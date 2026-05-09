@@ -125,14 +125,7 @@
           "agent_prompt_change": null,
           "procedure_update": null,
           "transfer_to_genesys_chat": null,
-          "language_detection": {
-            "type": "system",
-            "name": "language_detection",
-            "description": "",
-            "params": {
-              "system_tool_type": "language_detection"
-            }
-          }
+          "language_detection": null
         },
         "enable_parallel_tool_calls": false,
         "mcp_server_ids": [],

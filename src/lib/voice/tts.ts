@@ -38,6 +38,12 @@ export async function synthesizeAndStoreSentence(text: string, language: Locale)
       text,
       model_id: 'eleven_flash_v2_5',
       language_code: language,
+      voice_settings: {
+        stability: 0.4,
+        similarity_boost: 0.85,
+        style: 0.05,
+        use_speaker_boost: true,
+      },
     }),
   }).finally(() => clearTimeout(timer))
 

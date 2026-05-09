@@ -48,14 +48,28 @@ type OpenAIRequest = {
 }
 
 export async function POST(req: Request) {
+  // FIRST line — log that ANY request hit us, before any validation,
+  // so we can tell whether a failed call ever reached the handler.
+  console.log('[voice-llm] HIT', {
+    ua: req.headers.get('user-agent')?.slice(0, 60),
+    ct: req.headers.get('content-type'),
+    cl: req.headers.get('content-length'),
+  })
+
   if (isAgentDisabled()) {
     return new Response('Agent disabled', { status: 503 })
   }
 
+  // Read raw text first so we can dump it on parse failure.
+  const raw = await req.text()
+  console.log('[voice-llm] RAW BODY (first 600 chars):', raw.slice(0, 600))
+
   let body: OpenAIRequest
   try {
-    body = (await req.json()) as OpenAIRequest
-  } catch {
+    body = JSON.parse(raw) as OpenAIRequest
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err)
+    console.error('[voice-llm] JSON parse failed:', msg, 'rawHead:', raw.slice(0, 200))
     return new Response('Invalid JSON', { status: 400 })
   }
 
