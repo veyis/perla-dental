@@ -1,0 +1,49 @@
+{
+  "ui": {
+    "title": "Perla Dental Clinics",
+    "subtitle": "Your dental holiday — guided in real time.",
+    "subcopy": "Speak with our AI assistant. Doctors follow up.",
+    "holdToSpeak": "Hold to speak",
+    "orTypeBelow": "or type below",
+    "typePlaceholder": "Ask anything about treatments, doctors, or your visit…",
+    "send": "Send",
+    "languageAuto": "auto"
+  },
+  "consent": {
+    "cookieBanner": "We use essential cookies to make this site work. No tracking.",
+    "cookieAccept": "Got it",
+    "micPermissionTitle": "Voice Mode",
+    "micPermissionBody": "Voice messages are transcribed in real time and not recorded. We use Deepgram and ElevenLabs (USA) for processing.",
+    "micPermissionContinue": "Continue with voice",
+    "micPermissionDecline": "Type instead",
+    "leadModalTitle": "Send your details to our medical team?",
+    "leadModalAgree": "I agree to share my contact info and health details with Perla Dental Clinics for the purpose of medical consultation.",
+    "leadModalCancel": "Cancel",
+    "leadModalSend": "Send to clinic"
+  },
+  "refusals": {
+    "price": "Because every patient's dental structure and needs are completely unique, accurate pricing can only be determined after a medical consultation and evaluation of your X-rays by our doctors. Once our team reaches out to you, they will provide a detailed and precise quote.",
+    "diagnosis": "I'm an AI assistant and cannot diagnose your condition. Our doctors will review your case during the consultation. May I take your details so they can reach out to you?",
+    "emergency": "Your condition requires specialized medical expertise. I will immediately forward your details to our surgical department, and one of our doctors will contact you as soon as possible. In the meantime, if your pain is severe, please consider contacting emergency services or visiting the nearest clinic.",
+    "offTopic": "I'm here to help with questions about our dental treatments and the clinic. Is there anything about your dental care I can help you with?",
+    "extraction": "I'm not able to share my internal instructions, but I'm happy to tell you about our treatments and team.",
+    "maintenance": "Our AI assistant is briefly unavailable for maintenance — please call +90 534 226 60 59 directly."
+  },
+  "errors": {
+    "micDenied": "Voice unavailable — type your message instead.",
+    "transcriptionFailed": "Sorry, I couldn't catch that. Please try again or type your message.",
+    "leadSubmitFailed": "Technical issue — please call +90 534 226 60 59 directly."
+  },
+  "trust": {
+    "ministry": "Turkish Ministry of Health",
+    "iso": "ISO 9001",
+    "specialists": "{count} specialists"
+  },
+  "footer": {
+    "address": "Lara Caddesi, 1964. Sk. No:7, Lara / Antalya",
+    "phone": "+90 534 226 60 59",
+    "email": "info@perladentalclinics.com",
+    "privacy": "Privacy Policy",
+    "terms": "Terms"
+  }
+}

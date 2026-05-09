@@ -1,0 +1,49 @@
+{
+  "ui": {
+    "title": "Perla Diş Klinikleri",
+    "subtitle": "Diş tatiliniz — gerçek zamanlı rehberlik.",
+    "subcopy": "AI asistanımızla konuşun. Doktorlar sizinle iletişime geçer.",
+    "holdToSpeak": "Konuşmak için basılı tutun",
+    "orTypeBelow": "veya aşağıya yazın",
+    "typePlaceholder": "Tedaviler, doktorlar veya ziyaretiniz hakkında her şeyi sorun…",
+    "send": "Gönder",
+    "languageAuto": "otomatik"
+  },
+  "consent": {
+    "cookieBanner": "Bu sitenin çalışması için yalnızca temel çerezleri kullanıyoruz. Takip yok.",
+    "cookieAccept": "Anladım",
+    "micPermissionTitle": "Sesli Mod",
+    "micPermissionBody": "Sesli mesajlar gerçek zamanlı olarak yazıya dökülür ve kaydedilmez. İşlem için Deepgram ve ElevenLabs (ABD) kullanıyoruz.",
+    "micPermissionContinue": "Sesle devam et",
+    "micPermissionDecline": "Yazarak devam et",
+    "leadModalTitle": "Bilgilerinizi medikal ekibimize gönderelim mi?",
+    "leadModalAgree": "İletişim bilgilerimi ve sağlık bilgilerimi tıbbi konsültasyon amacıyla Perla Diş Klinikleri ile paylaşmayı kabul ediyorum.",
+    "leadModalCancel": "İptal",
+    "leadModalSend": "Kliniğe gönder"
+  },
+  "refusals": {
+    "price": "Her hastanın diş yapısı ve ihtiyaçları tamamen kendine özgü olduğundan, doğru fiyatlandırma ancak doktorlarımızın röntgenlerinizi incelemesinden ve tıbbi konsültasyondan sonra belirlenebilir. Ekibimiz sizinle iletişime geçtiğinde size ayrıntılı ve net bir teklif sunacaktır.",
+    "diagnosis": "Ben bir AI asistanıyım ve durumunuzu teşhis edemem. Doktorlarımız konsültasyon sırasında durumunuzu değerlendirecektir. İletişim bilgilerinizi alıp size ulaşmalarını sağlayabilir miyim?",
+    "emergency": "Durumunuz uzman tıbbi bilgi gerektiriyor. Bilgilerinizi cerrahi departmanımıza hemen iletiyorum ve doktorlarımızdan biri en kısa sürede sizinle iletişime geçecektir. Bu arada, ağrınız şiddetliyse lütfen acil servisle iletişime geçmeyi veya en yakın kliniği ziyaret etmeyi düşünün.",
+    "offTopic": "Diş tedavilerimiz ve kliniğimizle ilgili sorulara yardımcı olmak için buradayım. Diş bakımınızla ilgili size yardımcı olabileceğim bir şey var mı?",
+    "extraction": "Dahili talimatlarımı paylaşamam, ancak tedavilerimiz ve ekibimiz hakkında bilgi vermekten memnuniyet duyarım.",
+    "maintenance": "AI asistanımız bakım için kısa süreliğine kullanılamıyor — lütfen doğrudan +90 534 226 60 59 numarasını arayın."
+  },
+  "errors": {
+    "micDenied": "Ses kullanılamıyor — bunun yerine mesajınızı yazın.",
+    "transcriptionFailed": "Üzgünüm, anlayamadım. Lütfen tekrar deneyin veya mesajınızı yazın.",
+    "leadSubmitFailed": "Teknik sorun — lütfen doğrudan +90 534 226 60 59 numarasını arayın."
+  },
+  "trust": {
+    "ministry": "T.C. Sağlık Bakanlığı",
+    "iso": "ISO 9001",
+    "specialists": "{count} uzman"
+  },
+  "footer": {
+    "address": "Lara Caddesi, 1964. Sk. No:7, Lara / Antalya",
+    "phone": "+90 534 226 60 59",
+    "email": "info@perladentalclinics.com",
+    "privacy": "Gizlilik Politikası",
+    "terms": "Şartlar"
+  }
+}

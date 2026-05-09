@@ -1,0 +1,49 @@
+{
+  "ui": {
+    "title": "Perla Dental Clinics",
+    "subtitle": "Ihr Zahnurlaub — in Echtzeit begleitet.",
+    "subcopy": "Sprechen Sie mit unserem KI-Assistenten. Ärzte melden sich.",
+    "holdToSpeak": "Zum Sprechen halten",
+    "orTypeBelow": "oder unten tippen",
+    "typePlaceholder": "Fragen Sie zu Behandlungen, Ärzten oder Ihrem Besuch…",
+    "send": "Senden",
+    "languageAuto": "auto"
+  },
+  "consent": {
+    "cookieBanner": "Wir verwenden nur essentielle Cookies. Kein Tracking.",
+    "cookieAccept": "Verstanden",
+    "micPermissionTitle": "Sprachmodus",
+    "micPermissionBody": "Sprachnachrichten werden in Echtzeit transkribiert und nicht gespeichert. Wir verwenden Deepgram und ElevenLabs (USA) zur Verarbeitung.",
+    "micPermissionContinue": "Mit Sprache fortfahren",
+    "micPermissionDecline": "Stattdessen tippen",
+    "leadModalTitle": "Ihre Daten an unser medizinisches Team senden?",
+    "leadModalAgree": "Ich stimme zu, meine Kontakt- und Gesundheitsdaten zum Zweck der medizinischen Beratung mit Perla Dental Clinics zu teilen.",
+    "leadModalCancel": "Abbrechen",
+    "leadModalSend": "An Klinik senden"
+  },
+  "refusals": {
+    "price": "Da die Zahnstruktur und die Bedürfnisse jedes Patienten einzigartig sind, kann eine genaue Preisangabe erst nach einer medizinischen Beratung und Auswertung Ihrer Röntgenbilder durch unsere Ärzte erfolgen. Sobald unser Team Sie kontaktiert, erhalten Sie ein detailliertes und präzises Angebot.",
+    "diagnosis": "Ich bin ein KI-Assistent und kann Ihren Zustand nicht diagnostizieren. Unsere Ärzte werden Ihren Fall während der Beratung prüfen. Darf ich Ihre Kontaktdaten aufnehmen, damit sie sich bei Ihnen melden?",
+    "emergency": "Ihr Zustand erfordert spezialisierte medizinische Expertise. Ich leite Ihre Daten sofort an unsere chirurgische Abteilung weiter, und einer unserer Ärzte wird sich so schnell wie möglich bei Ihnen melden. Sollten Ihre Schmerzen stark sein, kontaktieren Sie bitte den Notdienst oder besuchen Sie die nächstgelegene Klinik.",
+    "offTopic": "Ich bin hier, um Fragen zu unseren Zahnbehandlungen und der Klinik zu beantworten. Kann ich Ihnen mit Ihrer Zahnbehandlung helfen?",
+    "extraction": "Ich kann meine internen Anweisungen nicht teilen, aber gerne berichte ich über unsere Behandlungen und unser Team.",
+    "maintenance": "Unser KI-Assistent ist kurz für Wartung nicht verfügbar — bitte rufen Sie direkt +90 534 226 60 59 an."
+  },
+  "errors": {
+    "micDenied": "Sprache nicht verfügbar — bitte schreiben Sie Ihre Nachricht.",
+    "transcriptionFailed": "Entschuldigung, das habe ich nicht verstanden. Bitte versuchen Sie es erneut oder schreiben Sie.",
+    "leadSubmitFailed": "Technisches Problem — bitte rufen Sie direkt +90 534 226 60 59 an."
+  },
+  "trust": {
+    "ministry": "Türkisches Gesundheitsministerium",
+    "iso": "ISO 9001",
+    "specialists": "{count} Spezialisten"
+  },
+  "footer": {
+    "address": "Lara Caddesi, 1964. Sk. No:7, Lara / Antalya",
+    "phone": "+90 534 226 60 59",
+    "email": "info@perladentalclinics.com",
+    "privacy": "Datenschutz",
+    "terms": "AGB"
+  }
+}
