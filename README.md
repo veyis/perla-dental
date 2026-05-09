@@ -39,3 +39,4 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 
 If `pnpm dev` shows MIME-type errors loading `silero_vad.onnx`, run with webpack:
 `pnpm next dev --webpack`. Production `pnpm build` should still use Turbopack.
+# perla-dental
