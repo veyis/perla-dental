@@ -2,7 +2,7 @@
   "ui": {
     "title": "Perla Dental Clinics",
     "subtitle": "Your dental holiday — guided in real time.",
-    "subcopy": "Speak with our AI assistant. Doctors follow up.",
+    "subcopy": "Premium dental care, guided by our AI concierge. Doctors follow up.",
     "holdToSpeak": "Tap to speak",
     "orTypeBelow": "or type below",
     "typePlaceholder": "Ask anything about treatments, doctors, or your visit…",
@@ -33,6 +33,29 @@
     "micDenied": "Voice unavailable — type your message instead.",
     "transcriptionFailed": "Sorry, I couldn't catch that. Please try again or type your message.",
     "leadSubmitFailed": "Technical issue — please call +90 534 226 60 59 directly."
+  },
+  "chat": {
+    "headerTitle": "Perla Concierge",
+    "headerOnline": "Online",
+    "sectionTitle": "Talk to Our Concierge",
+    "sectionSubtitle": "Ask about treatments, our specialists, and how your visit will unfold.",
+    "greeting": "Welcome to Perla Dental Clinics, I am the clinic's digital assistant. How may I help you today?",
+    "chipImplants": "Tell me about implants",
+    "chipVeneers": "Veneers & smile makeover",
+    "chipDentalHoliday": "How does the Dental Holiday work?",
+    "chipDoctors": "Tell me about your doctors",
+    "placeholder": "Type your message…",
+    "composerLabel": "Message Perla Concierge",
+    "send": "Send",
+    "muteOn": "Voice replies on",
+    "muteOff": "Voice replies off",
+    "openLauncher": "Open chat with Perla Concierge",
+    "closeLauncher": "Close chat",
+    "charCounter": "{count} / 1000",
+    "privacyLink": "Privacy",
+    "escalationBanner": "Your case has been forwarded to our surgical team.",
+    "leadConfirmed": "Saved — our team will be in touch within one business day.",
+    "typingLabel": "Perla Concierge is typing"
   },
   "trust": {
     "ministry": "Turkish Ministry of Health",
