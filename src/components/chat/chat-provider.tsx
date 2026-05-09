@@ -28,6 +28,7 @@ type ChatContextValue = {
   messages: ReturnType<typeof useChatConversation>['messages']
   status: ReturnType<typeof useChatConversation>['status']
   sendMessage: ReturnType<typeof useChatConversation>['sendMessage']
+  setMessages: ReturnType<typeof useChatConversation>['setMessages']
   ttsEnabled: boolean
   setTtsEnabled: (v: boolean) => void
   isLauncherOpen: boolean
@@ -59,7 +60,7 @@ export function ChatProvider({ locale, children }: { locale: Locale; children: R
   const [isInlineVisible, setInlineVisible] = useState(false)
   const [leadCardState, setLeadCardStateMap] = useState<Record<string, LeadCardState>>({})
 
-  const { messages, status, sendMessage, conversationId } = useChatConversation({
+  const { messages, status, sendMessage, setMessages, conversationId } = useChatConversation({
     locale,
     ttsEnabled,
   })
@@ -111,6 +112,7 @@ export function ChatProvider({ locale, children }: { locale: Locale; children: R
     messages,
     status,
     sendMessage,
+    setMessages,
     ttsEnabled,
     setTtsEnabled,
     isLauncherOpen,
