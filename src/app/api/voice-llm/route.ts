@@ -26,6 +26,16 @@ import { logger } from '@/lib/observability/logger'
 
 export const maxDuration = 60
 
+const VOICE_OUTPUT_RULES = `
+[VOICE OUTPUT — STRICT]
+This is a live voice call. The text you produce is read aloud by a TTS engine.
+- Plain spoken language only. No markdown whatsoever: no **, no __, no ##, no -, no *, no numbered lists, no headings, no symbols, no parenthetical asides with slashes.
+- Maximum 2 short sentences per turn. Never lecture. Never list items.
+- Say numbers as words: "nine to six" not "9-6", "all on four" not "All-on-4", spell phone digits in pairs.
+- Ask exactly one question per turn. Wait for the answer before continuing.
+- Mirror the caller's language. If they switch to Turkish, German, or Russian, switch immediately and stay there.
+`.trim()
+
 type OpenAIMessage = {
   role: 'system' | 'user' | 'assistant' | 'tool'
   content: string | null
@@ -136,6 +146,10 @@ export async function POST(req: Request) {
         providerOptions: {
           anthropic: { cacheControl: { type: 'ephemeral', ttl: '1h' } },
         },
+      } as never,
+      {
+        role: 'system',
+        content: VOICE_OUTPUT_RULES,
       } as never,
       ...messages,
     ],
