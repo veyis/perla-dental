@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const appendMock = vi.fn()
 
@@ -14,14 +14,14 @@ vi.mock('googleapis', () => ({
 vi.mock('@/lib/env', () => ({
   env: {
     GOOGLE_SHEETS_SA_KEY: Buffer.from(
-      JSON.stringify({ client_email: 'sa@p.iam', private_key: 'k' })
+      JSON.stringify({ client_email: 'sa@p.iam', private_key: 'k' }),
     ).toString('base64'),
     GOOGLE_SHEETS_LEAD_SHEET_ID: 'sheet1',
     GOOGLE_SHEETS_AUDIT_SHEET_ID: 'sheet2',
   },
 }))
 
-import { appendLeadRow, appendAuditRow } from '@/lib/leads/sheets'
+import { appendAuditRow, appendLeadRow } from '@/lib/leads/sheets'
 
 beforeEach(() => {
   appendMock.mockReset()

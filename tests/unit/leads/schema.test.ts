@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest'
-import { normalizePhone, leadToSheetRow, SHEET_COLUMNS } from '@/lib/leads/schema'
+import { describe, expect, it } from 'vitest'
+import { leadToSheetRow, normalizePhone, SHEET_COLUMNS } from '@/lib/leads/schema'
 
 describe('normalizePhone', () => {
   it('converts to E.164', () => {

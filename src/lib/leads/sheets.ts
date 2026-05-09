@@ -22,11 +22,7 @@ function client() {
   return google.sheets({ version: 'v4', auth: auth as any })
 }
 
-async function appendWithRetry(
-  spreadsheetId: string,
-  range: string,
-  row: string[]
-): Promise<void> {
+async function appendWithRetry(spreadsheetId: string, range: string, row: string[]): Promise<void> {
   const sheets = client()
   const params = {
     spreadsheetId,
