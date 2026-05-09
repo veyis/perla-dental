@@ -1,0 +1,44 @@
+{
+    "name": "escalate_to_human",
+    "description": "Notify the consultant team to call this lead back urgently. Triggered when the caller requests a human, expresses frustration, or asks a complex question the agent cannot answer.",
+    "type": "webhook",
+    "api_schema": {
+        "url": "https://perla-dental.vercel.app/api/leads/escalate",
+        "method": "POST",
+        "request_body_schema": {
+            "type": "object",
+            "description": "Escalation request for the consultant team",
+            "properties": {
+                "fullName": {
+                    "type": "string",
+                    "description": "Caller's name if collected"
+                },
+                "phone": {
+                    "type": "string",
+                    "description": "Caller's phone number in E.164 format"
+                },
+                "reason": {
+                    "type": "string",
+                    "enum": ["caller_request", "agent_frustration", "complex_question", "complaint"],
+                    "description": "Why escalation was triggered"
+                },
+                "urgency": {
+                    "type": "string",
+                    "enum": ["normal", "high"],
+                    "description": "Priority level for the callback"
+                }
+            },
+            "required": ["phone", "reason"]
+        },
+        "request_headers": {
+            "Content-Type": "application/json"
+        }
+    },
+    "response_timeout_secs": 30,
+    "dynamic_variables": {
+        "dynamic_variable_placeholders": {}
+    },
+    "assignments": [],
+    "disable_interruptions": false,
+    "force_pre_tool_speech": false
+}

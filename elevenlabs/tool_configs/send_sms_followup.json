@@ -1,0 +1,39 @@
+{
+    "name": "send_sms_followup",
+    "description": "Send a confirmation SMS to the patient after a successful lead capture. Confirms the medical team will follow up within 24 hours. Call once at the end of the closing line.",
+    "type": "webhook",
+    "api_schema": {
+        "url": "https://perla-dental.vercel.app/api/sms",
+        "method": "POST",
+        "request_body_schema": {
+            "type": "object",
+            "description": "SMS send request",
+            "properties": {
+                "phone": {
+                    "type": "string",
+                    "description": "Recipient phone number in E.164 format"
+                },
+                "language": {
+                    "type": "string",
+                    "enum": ["en", "tr"],
+                    "description": "Language for the SMS template"
+                },
+                "name": {
+                    "type": "string",
+                    "description": "Patient's first name for personalisation"
+                }
+            },
+            "required": ["phone", "language"]
+        },
+        "request_headers": {
+            "Content-Type": "application/json"
+        }
+    },
+    "response_timeout_secs": 30,
+    "dynamic_variables": {
+        "dynamic_variable_placeholders": {}
+    },
+    "assignments": [],
+    "disable_interruptions": false,
+    "force_pre_tool_speech": false
+}

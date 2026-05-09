@@ -1,0 +1,60 @@
+{
+    "name": "save_lead",
+    "description": "Save or update a patient lead in the CRM. Call incrementally after each data slot is confirmed — name, phone, email, health notes — so a mid-call hang-up still saves partial data.",
+    "type": "webhook",
+    "api_schema": {
+        "url": "https://perla-dental.vercel.app/api/leads",
+        "method": "POST",
+        "request_body_schema": {
+            "type": "object",
+            "description": "Patient lead data collected during the voice call",
+            "properties": {
+                "fullName": {
+                    "type": "string",
+                    "description": "Patient's full name as spoken and confirmed"
+                },
+                "phone": {
+                    "type": "string",
+                    "description": "Phone number in E.164 format, e.g. +905342266059"
+                },
+                "email": {
+                    "type": "string",
+                    "description": "Email address, spelled back and confirmed"
+                },
+                "healthNotes": {
+                    "type": "string",
+                    "description": "Free-text chronic conditions or regular medications"
+                },
+                "treatmentInterest": {
+                    "type": "string",
+                    "enum": ["implants", "all_on_4", "all_on_6", "veneers", "zirconium", "laminate", "bonding", "smile_design", "orthodontics", "other", "unknown"],
+                    "description": "Primary treatment the caller is interested in"
+                },
+                "preferredLanguage": {
+                    "type": "string",
+                    "enum": ["en", "tr", "other"],
+                    "description": "Language the caller used during the call"
+                },
+                "leadSource": {
+                    "type": "string",
+                    "description": "How the lead was generated"
+                },
+                "callSummary": {
+                    "type": "string",
+                    "description": "Two-sentence summary of the caller's intent and situation"
+                }
+            },
+            "required": ["fullName"]
+        },
+        "request_headers": {
+            "Content-Type": "application/json"
+        }
+    },
+    "response_timeout_secs": 30,
+    "dynamic_variables": {
+        "dynamic_variable_placeholders": {}
+    },
+    "assignments": [],
+    "disable_interruptions": false,
+    "force_pre_tool_speech": false
+}

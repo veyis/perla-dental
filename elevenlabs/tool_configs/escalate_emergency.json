@@ -1,0 +1,38 @@
+{
+    "name": "escalate_emergency",
+    "description": "Flag this caller as a medical emergency and immediately notify the on-call clinical contact. Triggered when the caller describes severe facial swelling with fever, uncontrolled bleeding, jaw trauma, or difficulty breathing or swallowing.",
+    "type": "webhook",
+    "api_schema": {
+        "url": "https://perla-dental.vercel.app/api/emergency",
+        "method": "POST",
+        "request_body_schema": {
+            "type": "object",
+            "description": "Emergency escalation payload",
+            "properties": {
+                "fullName": {
+                    "type": "string",
+                    "description": "Caller's name if known"
+                },
+                "phone": {
+                    "type": "string",
+                    "description": "Caller's phone number in E.164 format"
+                },
+                "symptomsDescribed": {
+                    "type": "string",
+                    "description": "Exact symptoms the caller described, verbatim or close paraphrase"
+                }
+            },
+            "required": ["phone", "symptomsDescribed"]
+        },
+        "request_headers": {
+            "Content-Type": "application/json"
+        }
+    },
+    "response_timeout_secs": 15,
+    "dynamic_variables": {
+        "dynamic_variable_placeholders": {}
+    },
+    "assignments": [],
+    "disable_interruptions": true,
+    "force_pre_tool_speech": false
+}
