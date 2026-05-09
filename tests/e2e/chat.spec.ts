@@ -74,6 +74,9 @@ test.describe('Landing chat assistant — UI structure', () => {
   })
 
   test('launcher hides while inline section is in viewport', async ({ page }) => {
+    await page.addInitScript(() => {
+      sessionStorage.setItem('perla.chat.autoGreeted', 'true')
+    })
     await page.goto('/en')
     const launcher = page.getByRole('button', { name: /Open chat with Perla Concierge/i })
     await expect(launcher).toBeVisible({ timeout: 5000 })
