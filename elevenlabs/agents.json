@@ -1,0 +1,10 @@
+{
+    "agents": [
+        {
+            "config": "agent_configs/dental.json",
+            "id": "agent_3901kr5q0062fs894rfj52hdnvy5",
+            "version_id": "agtvrsn_8301kr5qd98cepjrwrysqc52bqhk",
+            "branch_id": "agtbrch_9401kr5q0136e59sm3gcayrrejte"
+        }
+    ]
+}
