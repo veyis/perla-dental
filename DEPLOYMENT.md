@@ -3,8 +3,8 @@
 ## One-time setup
 1. `pnpm dlx vercel link`
 2. Add all env vars from `.env.example` in Vercel project settings.
-3. Supabase project (ref `padskljpjhrbwmfhhrcz`, region us-west-2) is
-   already provisioned. The `perla` schema, the `perla.leads`,
+3. Supabase project (`stoxpulse`, ref `zgqzsypxtcygdqnflatp`, region us-west-2)
+   is already provisioned. The `perla` schema, the `perla.leads`,
    `perla.audit_events`, and `perla.rate_limits` tables, the
    `perla.touch_rate_limit` RPC, and the `perla-tts` storage bucket
    exist in production. Paste the project's `service_role` key into

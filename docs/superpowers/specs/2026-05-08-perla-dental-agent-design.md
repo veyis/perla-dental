@@ -566,10 +566,10 @@ DEEPGRAM_API_KEY=
 ELEVENLABS_API_KEY=
 ELEVENLABS_VOICE_ID=
 
-# Supabase (project ref: padskljpjhrbwmfhhrcz, region: us-west-2)
-SUPABASE_URL=https://padskljpjhrbwmfhhrcz.supabase.co
+# Supabase (project: stoxpulse, ref: zgqzsypxtcygdqnflatp, region: us-west-2)
+SUPABASE_URL=https://zgqzsypxtcygdqnflatp.supabase.co
 SUPABASE_SERVICE_ROLE_KEY=             # server-only; never ship to browser
-NEXT_PUBLIC_SUPABASE_URL=https://padskljpjhrbwmfhhrcz.supabase.co
+NEXT_PUBLIC_SUPABASE_URL=https://zgqzsypxtcygdqnflatp.supabase.co
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=  # safe in client bundle
 
 # Email
