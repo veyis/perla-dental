@@ -77,7 +77,12 @@ export async function POST(req: Request) {
   const messages = convertOpenAIMessagesToModelMessages(body.messages ?? [])
 
   const tools = buildTools({
-    onSubmitLead: async (input) => {
+    onProposeLead: async (input) => {
+      // Voice flow: verbal consent already obtained mid-call, so the row
+      // is written immediately. We still return a pending_consent envelope
+      // because that's the shared tool contract; the model's follow-up
+      // turn will confirm verbally with the caller — one extra short
+      // exchange relative to the prior behavior.
       const result = await submitLead({
         ip,
         conversationId,
@@ -88,7 +93,7 @@ export async function POST(req: Request) {
       })
       if (result.success) {
         await audit({ kind: 'lead_submitted', leadId: result.leadId, conversationId })
-        return { leadId: result.leadId }
+        return { status: 'pending_consent' as const, fields: input, fingerprint: '' }
       }
       throw new Error(`submitLead failed: ${result.reason}`)
     },

@@ -11,7 +11,7 @@ import { buildSystemPrompt, staticSystemBlocks } from '@/lib/agent/prompt'
 import { buildTools } from '@/lib/agent/tools'
 import type { ConversationState } from '@/lib/agent/types'
 import { isAgentDisabled } from '@/lib/env'
-import { submitLead } from '@/lib/leads/submit-lead'
+import { signFields } from '@/lib/leads/consent-hmac'
 import { audit } from '@/lib/observability/audit'
 import { logger } from '@/lib/observability/logger'
 import { sanitizeForTTS } from '@/lib/voice/sanitize'
@@ -28,17 +28,12 @@ type ChatBody = {
   voiceEnabled?: boolean
 }
 
-const CONSENT_TEXT =
-  'I agree to share my contact info and health details with Perla Dental Clinics for the purpose of medical consultation.'
-
 export async function POST(req: Request) {
   if (isAgentDisabled()) {
     return new Response('Agent disabled', { status: 503 })
   }
 
   const body = (await req.json()) as ChatBody
-  const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown'
-  const country = req.headers.get('x-vercel-ip-country') ?? undefined
 
   const stateForPrompt: ConversationState = {
     conversationId: body.conversationId,
@@ -55,24 +50,13 @@ export async function POST(req: Request) {
   const stream = createUIMessageStream({
     execute: async ({ writer }) => {
       const tools = buildTools({
-        onSubmitLead: async (input) => {
-          const result = await submitLead({
-            ip,
+        onProposeLead: async (input) => {
+          const fingerprint = signFields(body.conversationId, input)
+          await audit({
+            kind: 'lead_consent_pending',
             conversationId: body.conversationId,
-            input,
-            consentText: CONSENT_TEXT,
-            countryCode: country,
-            source: 'direct',
           })
-          if (result.success) {
-            await audit({
-              kind: 'lead_submitted',
-              leadId: result.leadId,
-              conversationId: body.conversationId,
-            })
-            return { leadId: result.leadId }
-          }
-          throw new Error(`submitLead failed: ${result.reason}`)
+          return { status: 'pending_consent' as const, fields: input, fingerprint }
         },
         onEscalateEmergency: async (input) => {
           await audit({

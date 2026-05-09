@@ -19,8 +19,19 @@ export const escalateEmergencyParams = z.object({
 export type SubmitLeadInput = z.infer<typeof submitLeadParams>
 export type EscalateEmergencyInput = z.infer<typeof escalateEmergencyParams>
 
+export type ProposeLeadResult = {
+  status: 'pending_consent'
+  fields: SubmitLeadInput
+  fingerprint: string
+}
+
 export type ToolDeps = {
-  onSubmitLead: (input: SubmitLeadInput) => Promise<{ leadId: string }>
+  /**
+   * Returns a signed envelope for the user-facing consent card. Does NOT
+   * write the lead. The actual write happens at /api/lead/submit after the
+   * user clicks "Send to clinic".
+   */
+  onProposeLead: (input: SubmitLeadInput) => Promise<ProposeLeadResult>
   onEscalateEmergency: (input: EscalateEmergencyInput) => Promise<{ ack: true }>
 }
 
@@ -28,9 +39,9 @@ export function buildTools(deps: ToolDeps) {
   return {
     submitLead: tool({
       description:
-        'Save patient contact info to the clinic CRM. Call ONLY after collecting all required fields AND receiving explicit consent in the conversation. consentGiven must be true.',
+        'Propose a lead for the user to confirm. Call ONLY when all required fields (full name, phone, email, interest, preferredLanguage) are gathered AND chronic-illness disclosure has been asked. consentGiven must be true. The clinic CRM is written ONLY after the user clicks the consent card the client renders from your tool result — do not assume the lead is saved until you receive a follow-up user message confirming submission.',
       inputSchema: submitLeadParams,
-      execute: async (input) => deps.onSubmitLead(input),
+      execute: async (input) => deps.onProposeLead(input),
     }),
     escalateEmergency: tool({
       description:
