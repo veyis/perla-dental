@@ -29,8 +29,17 @@ describe('sanitizeForTTS', () => {
     expect(sanitizeForTTS('- First\n- Second')).toBe('First Second')
   })
 
-  it('strips emojis', () => {
+  it('strips emojis (including 🦷 dental emoji from supplemental block)', () => {
     expect(sanitizeForTTS('👋 Hello! 🦷✨')).toBe('Hello!')
+    expect(sanitizeForTTS('Smile makeover 🦷✨ ready')).toBe('Smile makeover ready')
+  })
+
+  it('strips bold-italic ***triple***', () => {
+    expect(sanitizeForTTS('It is ***very*** important.')).toBe('It is very important.')
+  })
+
+  it('strips strikethrough', () => {
+    expect(sanitizeForTTS('Was ~~bad~~ good.')).toBe('Was good.')
   })
 
   it('preserves accented Latin characters', () => {

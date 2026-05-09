@@ -2,20 +2,20 @@
 
 import { motion, useScroll, useTransform } from 'framer-motion'
 import Image from 'next/image'
-import { MicButton } from './mic-button'
+import { VoiceCall } from './voice-call'
 import { Persona } from '@/components/ai-elements'
 import { useRef } from 'react'
 import { Star, ArrowRight, ShieldCheck, Zap } from 'lucide-react'
+import type { Locale } from '@/i18n/config'
 
 interface HeroProps {
   title: string
   subtitle: string
   status: string
-  onTranscript: (text: string) => void
-  onMicPress?: () => void
+  locale: Locale
 }
 
-export function Hero({ title, subtitle, status, onTranscript, onMicPress }: HeroProps) {
+export function Hero({ title, subtitle, status, locale }: HeroProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const { scrollY } = useScroll()
   
@@ -90,10 +90,7 @@ export function Hero({ title, subtitle, status, onTranscript, onMicPress }: Hero
             >
               <div className="relative group">
                 <div className="absolute -inset-1 bg-gradient-to-r from-primary via-highlight to-primary-light rounded-full blur opacity-20 group-hover:opacity-60 transition duration-1000 group-hover:duration-200 animate-tilt"></div>
-                <MicButton
-                  onTranscript={onTranscript}
-                  onMicPress={onMicPress}
-                />
+                <VoiceCall locale={locale} />
               </div>
               
               <div className="flex items-center gap-5 p-5 pr-8 rounded-[2rem] glass border border-white/50 shadow-premium hover:shadow-2xl transition-all duration-500 cursor-pointer group">

@@ -19,9 +19,20 @@ vi.mock('@/lib/supabase', () => ({
   }),
 }))
 
-vi.mock('@/lib/env', () => ({
-  env: { ELEVENLABS_API_KEY: 'k', ELEVENLABS_VOICE_ID: 'v' },
-}))
+vi.mock('@/lib/env', () => {
+  const fakeEnv: Record<string, string> = {
+    ELEVENLABS_API_KEY: 'k',
+    ELEVENLABS_VOICE_ID: 'v',
+  }
+  return {
+    env: fakeEnv,
+    requireEnv: (key: string) => {
+      const v = fakeEnv[key]
+      if (!v) throw new Error(`Missing required env var: ${key}`)
+      return v
+    },
+  }
+})
 
 import { synthesizeAndStoreSentence } from '@/lib/voice/tts'
 

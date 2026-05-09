@@ -90,15 +90,11 @@ export function LandingPage({ locale }: { locale: Locale }) {
       <Navbar locale={locale} />
       
       <main>
-        <Hero 
-          title={t('subtitle')} 
-          subtitle={t('subcopy')} 
-          status={status} 
-          onTranscript={(text) => {
-            startNewTurn()
-            void sendMessage({ text })
-          }}
-          onMicPress={startNewTurn}
+        <Hero
+          title={t('subtitle')}
+          subtitle={t('subcopy')}
+          status={status}
+          locale={locale}
         />
 
         <Services />

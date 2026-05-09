@@ -21,3 +21,25 @@
 Pinned to `fra1` (Frankfurt) for lowest latency to EU/TR/RU/DE patients.
 Supabase project is `us-west-2`; consider co-locating later if Vercel→Supabase
 RTT becomes a bottleneck.
+
+## ElevenLabs Conversational AI agent setup
+
+The full-duplex voice mode (phone-call style) uses ElevenLabs Agents.
+One-time configuration in the [ElevenLabs dashboard](https://elevenlabs.io/app/agents):
+
+1. **Create a new Agent**.
+2. **System prompt** → run `pnpm tsx scripts/print-system-prompt.ts` (TODO) to
+   print our `staticSystemBlocks()` content, paste it in.
+3. **Voice** → select the same voice as `ELEVENLABS_VOICE_ID` in env.
+4. **LLM** → choose **Custom LLM**:
+   - URL: `https://<your-vercel-domain>/api/voice-llm`
+   - Model: leave any value (we ignore it server-side)
+   - API key: leave blank or set a shared secret if you want to gate the proxy.
+5. **First message** → "Welcome to Perla Dental Clinics, how may I help you today?"
+   (Or per-locale variants — create one Agent per language and switch via locale.)
+6. Copy the Agent's public ID into `.env.local` and Vercel env as
+   `NEXT_PUBLIC_ELEVENLABS_AGENT_ID`.
+
+For production: enable EU residency on the ElevenLabs Enterprise tier
+(`api.eu.residency.elevenlabs.io`) and request a DPA + Zero Retention agreement
+for medical data compliance.

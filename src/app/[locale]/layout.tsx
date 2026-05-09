@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { DM_Serif_Display, Inter } from 'next/font/google'
+import { Outfit, Inter } from 'next/font/google'
 import { notFound } from 'next/navigation'
 import { hasLocale, NextIntlClientProvider } from 'next-intl'
 import { getMessages } from 'next-intl/server'
@@ -15,15 +15,20 @@ const inter = Inter({
   subsets: ['latin', 'latin-ext', 'cyrillic'],
   variable: '--font-body',
 })
-const serif = DM_Serif_Display({
-  weight: '400',
+const heading = Outfit({
   subsets: ['latin'],
   variable: '--font-heading',
 })
 
 export const metadata: Metadata = {
-  title: 'Perla Dental Clinics',
-  description: 'Your dental holiday — guided in real time.',
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'),
+  title: 'Perla Dental Clinics | Ultra-Modern Dental Care in Antalya',
+  description: 'Experience premium dental care in Antalya, Turkey. Our AI-powered clinic offers world-class treatments, from cosmetic dentistry to oral surgery, with bilingual support.',
+  openGraph: {
+    title: 'Perla Dental Clinics | Ultra-Modern Dental Care',
+    description: 'World-class dental treatments in Antalya. AI-guided consultations and expert care.',
+    images: ['/images/hero.png'],
+  },
 }
 
 export default async function RootLayout({
@@ -37,8 +42,9 @@ export default async function RootLayout({
   if (!hasLocale(locales, locale)) notFound()
   const messages = await getMessages()
   return (
-    <html lang={locale} className={`${inter.variable} ${serif.variable} h-full antialiased`}>
+    <html lang={locale} className={`${inter.variable} ${heading.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col">
+        <div className="grain" />
         <NextIntlClientProvider messages={messages}>
           {children}
           <CookieBanner />
