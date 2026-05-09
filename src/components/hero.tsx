@@ -1,7 +1,6 @@
 'use client'
 
 import { motion, useScroll, useTransform } from 'framer-motion'
-import Image from 'next/image'
 import { VoiceCall } from './voice-call'
 import { Persona } from '@/components/ai-elements'
 import { useRef } from 'react'
@@ -50,7 +49,7 @@ export function Hero({ title, subtitle, status, locale }: HeroProps) {
               <div className="flex -space-x-2">
                 {[1, 2, 3].map(i => (
                   <div key={i} className="w-6 h-6 rounded-full border-2 border-white bg-accent overflow-hidden">
-                    <Image src={`/images/smile.png`} alt="Patient" width={24} height={24} className="object-cover" />
+                    <img src="/images/smile.png" alt="Patient" width={24} height={24} className="object-cover" />
                   </div>
                 ))}
               </div>
@@ -129,14 +128,12 @@ export function Hero({ title, subtitle, status, locale }: HeroProps) {
             >
               {/* Main Image Container */}
               <div className="relative h-full w-full rounded-[60px] overflow-hidden shadow-[0_40px_100px_rgba(0,0,0,0.15)] group">
-                <Image 
+                <img 
                   src="/images/hero.png" 
                   alt="Premium Dental Clinic" 
-                  fill 
-                  className="object-cover group-hover:scale-110 transition-transform duration-[2s]"
-                  priority
+                  className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-[2s]"
+                  fetchPriority="high"
                   loading="eager"
-                  sizes="(max-width: 768px) 100vw, 50vw"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-60" />
                 

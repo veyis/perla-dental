@@ -43,6 +43,9 @@ export default async function RootLayout({
   const messages = await getMessages()
   return (
     <html lang={locale} className={`${inter.variable} ${heading.variable} h-full antialiased`}>
+      <head>
+        <link rel="preload" as="image" href="/images/hero.png" fetchPriority="high" />
+      </head>
       <body className="min-h-full flex flex-col">
         <div className="grain" />
         <NextIntlClientProvider messages={messages}>
