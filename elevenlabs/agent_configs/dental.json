@@ -310,7 +310,7 @@
             "threshold": "medium"
           },
           "medical_and_legal_information": {
-            "is_enabled": true,
+            "is_enabled": false,
             "threshold": "medium"
           }
         },
