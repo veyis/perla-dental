@@ -39,16 +39,21 @@ describe('buildSystemPrompt', () => {
     expect(tr).toContain('Respond ONLY in Turkish')
   })
 
-  it('includes serialized state', () => {
+  it('includes captured fields and turn count', () => {
     const p = buildSystemPrompt({
       ...baseState,
       step: 'lead_capture',
       captured: { fullName: 'Anna' },
       turnCount: 4,
     })
-    expect(p).toContain('"step":"lead_capture"')
     expect(p).toContain('"fullName":"Anna"')
-    expect(p).toContain('"turnCount":4')
+    expect(p).toContain('Conversation turn: 4')
+  })
+
+  it('instructs the model not to re-greet after turn 1', () => {
+    const p = buildSystemPrompt(baseState)
+    expect(p).toMatch(/do not repeat the greeting/i)
+    expect(p).toMatch(/listen to the patient/i)
   })
 
   it('includes prompt-injection defenses', () => {

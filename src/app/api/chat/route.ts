@@ -14,6 +14,7 @@ import { isAgentDisabled } from '@/lib/env'
 import { submitLead } from '@/lib/leads/submit-lead'
 import { audit } from '@/lib/observability/audit'
 import { logger } from '@/lib/observability/logger'
+import { sanitizeForTTS } from '@/lib/voice/sanitize'
 import { sentenceFlush } from '@/lib/voice/sentence-splitter'
 import { synthesizeAndStoreSentence } from '@/lib/voice/tts'
 
@@ -83,15 +84,45 @@ export async function POST(req: Request) {
         },
       })
 
+      console.log('[chat] request', {
+        conversationId: body.conversationId,
+        language: body.language,
+        voiceEnabled: body.voiceEnabled,
+        msgCount: body.messages.length,
+      })
+
+      // TTS calls run in PARALLEL (faster) — each audio part includes a
+      // sequence index so the client can play them in order regardless of
+      // synthesis-completion order.
+      let nextIndex = 0
+      const pending: Promise<void>[] = []
+
       const splitter = sentenceFlush({
-        onSentence: async (sentence) => {
+        onSentence: (sentence) => {
+          const cleaned = sanitizeForTTS(sentence)
+          console.log('[chat] sentence flushed', {
+            voiceEnabled: body.voiceEnabled,
+            preview: cleaned.slice(0, 60),
+          })
           if (!body.voiceEnabled) return
-          try {
-            const url = await synthesizeAndStoreSentence(sentence, body.language)
-            writer.write({ type: 'data-audio', transient: true, data: { url } })
-          } catch (err) {
-            logger.error({ err }, 'TTS sentence synthesis failed')
-          }
+          // Skip TTS for empty / single-character fragments after sanitizing.
+          // Saves an API call and avoids audible artifacts.
+          if (cleaned.length < 2) return
+
+          const index = nextIndex++
+          pending.push(
+            (async () => {
+              try {
+                const url = await synthesizeAndStoreSentence(cleaned, body.language)
+                console.log('[chat] writing data-audio part', { index, url })
+                writer.write({ type: 'data-audio', transient: true, data: { index, url } })
+              } catch (err) {
+                const msg = err instanceof Error ? err.message : String(err)
+                console.error('[chat] TTS sentence synthesis failed:', msg)
+                logger.error({ err }, 'TTS sentence synthesis failed')
+              }
+            })(),
+          )
         },
       })
 
@@ -120,7 +151,12 @@ export async function POST(req: Request) {
         onChunk: ({ chunk }) => {
           if (chunk.type === 'text-delta') splitter.push(chunk.text)
         },
-        onFinish: () => splitter.flush(),
+        onFinish: async () => {
+          splitter.flush()
+          // Wait for all parallel TTS calls to finish before the response
+          // closes — otherwise the last audio chunks never reach the client.
+          await Promise.allSettled(pending)
+        },
       })
 
       result.consumeStream()

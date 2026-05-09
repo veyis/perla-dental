@@ -11,9 +11,12 @@ const MIN_RECORDING_MS = 500
 
 export function MicButton({
   onTranscript,
+  onMicPress,
   disabled,
 }: {
   onTranscript: (text: string) => void
+  /** Called the moment the user taps the mic — used to interrupt agent audio. */
+  onMicPress?: () => void
   disabled?: boolean
 }) {
   const tUi = useTranslations('ui')
@@ -135,6 +138,9 @@ export function MicButton({
   function onClick() {
     if (disabled) return
     if (state === 'idle') {
+      // Fire onMicPress FIRST so any in-flight agent audio is silenced
+      // immediately, before the user starts speaking over it.
+      onMicPress?.()
       void start()
     } else if (state === 'recording') {
       stop()

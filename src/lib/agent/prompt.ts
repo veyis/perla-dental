@@ -44,21 +44,30 @@ const GUARDRAILS_BLOCK = `
 `.trim()
 
 export function buildSystemPrompt(state: ConversationState): string {
-  const stateJson = JSON.stringify({
-    step: state.step,
-    captured: state.captured,
-    turnCount: state.turnCount,
-  })
+  // Pass only the *captured fields* to the model — let it infer where in the
+  // flow it is from the conversation history. Hardcoding `step: 'greeting'`
+  // every turn made the agent re-greet on every reply instead of actually
+  // engaging with the patient's question.
+  const capturedJson = JSON.stringify(state.captured ?? {})
   const langName = LANGUAGE_NAMES[state.language]
   const knowledge = formatKnowledge()
+
+  const stateBlock = `[STATE]
+Captured fields so far: ${capturedJson}
+Conversation turn: ${state.turnCount}
+
+Use the conversation history above to determine where you are in the flow. Do NOT repeat the greeting after turn 1. Listen to the patient's most recent message and respond to it directly before advancing the flow.`
 
   return [
     ROLE_BLOCK,
     `[KNOWLEDGE]\n${knowledge}`,
     FLOW_BLOCK,
     GUARDRAILS_BLOCK,
-    `[STATE]\n${stateJson}`,
-    `[LANGUAGE]\nRespond ONLY in ${langName}. Tool arguments must remain in English.`,
+    stateBlock,
+    `[LANGUAGE]\nRespond ONLY in ${langName}. Tool arguments must remain in English.
+
+[STYLE]
+Keep responses concise — 1 to 3 sentences for normal turns. Long explanations should only happen when the patient asks a detailed question. The patient is likely listening to your reply via voice playback, so brevity matters.`,
   ].join('\n\n')
 }
 
