@@ -5,7 +5,9 @@
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build --turbopack",
-    "start": "next start"
+    "start": "next start",
+    "lint": "biome check src app tests",
+    "format": "biome format --write src app tests"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^3.0.76",
