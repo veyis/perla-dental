@@ -70,11 +70,11 @@ function VoiceCallInner({ agentId, locale }: { agentId: string; locale: Locale }
 
   async function handleStart() {
     try {
-      // Use WebRTC for full-duplex with barge-in (the recommended transport
-      // as of ElevenLabs Agents 2026).
+      // Default transport (WebSocket) is more reliable across networks than
+      // explicit WebRTC, which can hang on negotiation behind some routers.
+      // Barge-in works on either; WebRTC is just lower-latency.
       await startSession({
         agentId,
-        connectionType: 'webrtc',
         overrides: {
           agent: { language: LOCALE_TO_LANG[locale] },
         },
