@@ -1,8 +1,8 @@
 'use client'
 
-import { useTranslations } from 'next-intl'
 import { motion } from 'framer-motion'
-import { ShieldCheck, Award, Users, Phone, MapPin } from 'lucide-react'
+import { Award, MapPin, Phone, ShieldCheck, Users } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 
 export function TrustStrip() {
   const t = useTranslations('trust')

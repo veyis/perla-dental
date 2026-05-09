@@ -1,7 +1,7 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { Phone, Mail, MapPin, Clock, ExternalLink } from 'lucide-react'
+import { Clock, ExternalLink, Mail, MapPin, Phone } from 'lucide-react'
 
 export function Contact() {
   return (

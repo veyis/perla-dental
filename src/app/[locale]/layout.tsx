@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { Outfit, Inter } from 'next/font/google'
+import { Inter, Outfit } from 'next/font/google'
 import { notFound } from 'next/navigation'
 import { hasLocale, NextIntlClientProvider } from 'next-intl'
 import { getMessages } from 'next-intl/server'

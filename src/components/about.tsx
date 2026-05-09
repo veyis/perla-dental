@@ -1,8 +1,8 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import Image from 'next/image'
 import { CheckCircle2 } from 'lucide-react'
+import Image from 'next/image'
 
 const highlights = [
   'Over 15 years of dental excellence',

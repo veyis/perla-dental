@@ -1,8 +1,8 @@
 'use client'
 
 import { motion } from 'framer-motion'
+import { Clock, Heart, Shield, Sparkles } from 'lucide-react'
 import Image from 'next/image'
-import { Sparkles, Shield, Clock, Heart } from 'lucide-react'
 
 const services = [
   {

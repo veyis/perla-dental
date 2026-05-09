@@ -108,7 +108,12 @@ export default async function AdminCallsPage() {
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
-                          <Button variant="outline" size="sm" className="rounded-full shadow-sm hover:shadow-md transition-shadow border-border/50 bg-white" asChild>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="rounded-full shadow-sm hover:shadow-md transition-shadow border-border/50 bg-white"
+                            asChild
+                          >
                             <Link href={`/admin/calls/${conv.conversation_id}`}>
                               <FileText className="h-4 w-4 mr-1.5" />
                               Review
