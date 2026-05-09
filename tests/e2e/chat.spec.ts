@@ -34,6 +34,10 @@ test.describe('Landing chat assistant — UI structure', () => {
   })
 
   test('floating launcher opens, focus-trapped panel renders, Esc closes', async ({ page }) => {
+    // Suppress auto-open so we can test the manual click path independently.
+    await page.addInitScript(() => {
+      sessionStorage.setItem('perla.chat.autoGreeted', 'true')
+    })
     await page.goto('/en')
     const launcher = page.getByRole('button', { name: /Open chat with Perla Concierge/i })
     // The launcher entrance is delayed ~1s.
@@ -77,6 +81,21 @@ test.describe('Landing chat assistant — UI structure', () => {
     // IntersectionObserver fires after layout settles.
     await page.waitForTimeout(500)
     await expect(launcher).toHaveCount(0)
+  })
+
+  test('chat auto-opens after ~3.5 s and shows the protocol greeting', async ({ page }) => {
+    await page.goto('/en')
+    const dialog = page.getByRole('dialog', { name: /Perla Concierge/i })
+    // Auto-open fires at 3.5 s; allow up to 7 s for slow CI.
+    await expect(dialog).toBeVisible({ timeout: 7000 })
+    // The greeting must appear as an assistant message bubble.
+    await expect(dialog.getByText(/Welcome to Perla Dental Clinics/i)).toBeVisible()
+    // Reloading re-opens the launcher (LAUNCHER_OPEN_KEY) but skips injection (AUTO_GREETED_KEY set).
+    await page.reload()
+    const dialog2 = page.getByRole('dialog', { name: /Perla Concierge/i })
+    await expect(dialog2).toBeVisible({ timeout: 5000 })
+    // Static chips screen is shown (no injected greeting bubble).
+    await expect(dialog2.getByRole('button', { name: /Tell me about implants/i })).toBeVisible()
   })
 })
 
