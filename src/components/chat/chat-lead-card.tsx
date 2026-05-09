@@ -40,8 +40,12 @@ export function ChatLeadCard({
       }
       const json = (await res.json()) as { leadId: string }
       setLeadCardState(toolCallId, { phase: 'success', leadId: json.leadId })
+      // Phrased as a natural-sounding user reply so that if the metadata
+      // hidden filter ever fails (e.g. AI SDK changes shape), the worst
+      // case is a normal-looking message bubble rather than an exposed
+      // "[system] ..." sentinel.
       sendMessage({
-        text: '[system] Lead confirmed by user — please close the conversation per step 6.',
+        text: 'I have confirmed the details. Please close the conversation now.',
         // biome-ignore lint/suspicious/noExplicitAny: AI SDK metadata pass-through
         metadata: { hidden: true } as any,
       } as never)
@@ -57,7 +61,7 @@ export function ChatLeadCard({
   function onCancel() {
     setLeadCardState(toolCallId, { phase: 'cancelled' })
     sendMessage({
-      text: '[system] User wants to revise their details — please ask again.',
+      text: 'I would like to revise my details. Please ask me again.',
       // biome-ignore lint/suspicious/noExplicitAny: AI SDK metadata pass-through
       metadata: { hidden: true } as any,
     } as never)

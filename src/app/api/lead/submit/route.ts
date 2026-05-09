@@ -54,7 +54,10 @@ export async function POST(req: Request): Promise<Response> {
   })
 
   if (!result.success) {
-    return Response.json({ error: result.reason }, { status: 502 })
+    // 429 for rate-limit (client should back off); 502 for upstream
+    // failure (Supabase / Resend) so the client can show "try again later".
+    const status = result.reason === 'rate_limited' ? 429 : 502
+    return Response.json({ error: result.reason }, { status })
   }
 
   await audit({

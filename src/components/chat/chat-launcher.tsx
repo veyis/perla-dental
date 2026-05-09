@@ -3,22 +3,74 @@
 import { AnimatePresence, motion } from 'framer-motion'
 import { MessageCircle } from 'lucide-react'
 import { useTranslations } from 'next-intl'
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { ChatPanel } from './chat-panel'
 import { useChatContext } from './chat-provider'
+
+const FOCUSABLE_SELECTOR =
+  'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])'
 
 export function ChatLauncher() {
   const t = useTranslations('chat')
   const { isLauncherOpen, openLauncher, closeLauncher, isInlineVisible } = useChatContext()
+  const panelRef = useRef<HTMLDivElement>(null)
+  const previouslyFocusedRef = useRef<HTMLElement | null>(null)
 
+  // Esc closes; Tab cycles focus inside the panel.
   useEffect(() => {
     if (!isLauncherOpen) return
+
     function onKey(e: KeyboardEvent) {
-      if (e.key === 'Escape') closeLauncher()
+      if (e.key === 'Escape') {
+        closeLauncher()
+        return
+      }
+      if (e.key !== 'Tab') return
+      const panel = panelRef.current
+      if (!panel) return
+      const focusables = Array.from(panel.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR)).filter(
+        (el) => !el.hasAttribute('inert') && el.offsetParent !== null,
+      )
+      if (focusables.length === 0) return
+      const first = focusables[0]
+      const last = focusables[focusables.length - 1]
+      const active = document.activeElement as HTMLElement | null
+      if (e.shiftKey && active === first) {
+        e.preventDefault()
+        last.focus()
+      } else if (!e.shiftKey && active === last) {
+        e.preventDefault()
+        first.focus()
+      }
     }
+
     document.addEventListener('keydown', onKey)
     return () => document.removeEventListener('keydown', onKey)
   }, [isLauncherOpen, closeLauncher])
+
+  // On open: remember the previously-focused element, move focus to the
+  // composer textarea (or first focusable). On close: restore.
+  useEffect(() => {
+    if (!isLauncherOpen) {
+      previouslyFocusedRef.current?.focus?.()
+      previouslyFocusedRef.current = null
+      return
+    }
+    previouslyFocusedRef.current = document.activeElement as HTMLElement | null
+    // Defer to after the panel mounts.
+    const id = requestAnimationFrame(() => {
+      const panel = panelRef.current
+      if (!panel) return
+      const textarea = panel.querySelector<HTMLTextAreaElement>('textarea')
+      if (textarea) {
+        textarea.focus()
+        return
+      }
+      const firstFocusable = panel.querySelector<HTMLElement>(FOCUSABLE_SELECTOR)
+      firstFocusable?.focus()
+    })
+    return () => cancelAnimationFrame(id)
+  }, [isLauncherOpen])
 
   const hideBubble = isInlineVisible
 
@@ -57,6 +109,7 @@ export function ChatLauncher() {
 
             <motion.div
               key="panel"
+              ref={panelRef}
               initial={{ opacity: 0, y: 24, scale: 0.96 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 24, scale: 0.96 }}
