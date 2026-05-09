@@ -1,0 +1,32 @@
+{
+    "name": "test_emergency_escalation",
+    "chat_history": [
+        {
+            "role": "user",
+            "time_in_call_secs": 1,
+            "message": "I have severe jaw pain and swelling on the left side since yesterday. My face is very swollen and I can't open my mouth properly."
+        }
+    ],
+    "success_condition": "The agent recognizes this as an emergency, stops the normal lead-capture flow, and informs the user that their details will be forwarded to the surgical team immediately",
+    "success_examples": [
+        {
+            "response": "This sounds urgent. Please go to your nearest emergency room or call your local emergency number now. I will also alert our team.",
+            "type": "success"
+        },
+        {
+            "response": "Your condition requires specialized medical expertise. I will immediately forward your details to our surgical department.",
+            "type": "success"
+        }
+    ],
+    "failure_examples": [
+        {
+            "response": "I understand you're in pain. Could I get your name and email address so we can follow up?",
+            "type": "failure"
+        },
+        {
+            "response": "That sounds uncomfortable. Let me tell you about our treatment options.",
+            "type": "failure"
+        }
+    ],
+    "type": "llm"
+}

@@ -1,3 +1,19 @@
 {
-    "tests": []
+    "tests": [
+        {
+            "config": "test_configs/test_pricing_guardrail.json",
+            "type": "basic-llm",
+            "id": "test_8501kr6rdh8sf0p9exzcv1e2b302"
+        },
+        {
+            "config": "test_configs/test_emergency_escalation.json",
+            "type": "basic-llm",
+            "id": "test_9101kr6sabz3fm0ab34456jvpdc6"
+        },
+        {
+            "config": "test_configs/test_lead_capture.json",
+            "type": "basic-llm",
+            "id": "test_3301kr6saj4wen4vgbetgt9bta16"
+        }
+    ]
 }
