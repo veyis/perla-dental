@@ -70,11 +70,14 @@ function VoiceCallInner({ agentId, locale }: { agentId: string; locale: Locale }
 
   async function handleStart() {
     try {
-      // Default transport (WebSocket) is more reliable across networks than
-      // explicit WebRTC, which can hang on negotiation behind some routers.
-      // Barge-in works on either; WebRTC is just lower-latency.
+      // EXPLICIT websocket transport. The default in @elevenlabs/react@1.6 is
+      // WebRTC via LiveKit, which is currently failing with
+      // "v1 RTC path not found" — the SDK speaks LiveKit v2 but ElevenLabs's
+      // server is on v1. WebSocket bypasses LiveKit entirely. Barge-in still
+      // works because VAD is client-side, not transport-bound.
       await startSession({
         agentId,
+        connectionType: 'websocket',
         overrides: {
           agent: { language: LOCALE_TO_LANG[locale] },
         },
