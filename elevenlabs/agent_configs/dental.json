@@ -57,7 +57,7 @@
             ]
         },
         "tts": {
-            "model_id": "eleven_flash_v2_5",
+            "model_id": "eleven_flash_v2",
             "voice_id": "G17SuINrv2H9FC6nvetn",
             "supported_voices": [],
             "expressive_mode": false,
