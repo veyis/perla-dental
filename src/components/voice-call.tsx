@@ -2,8 +2,9 @@
 
 import { ConversationProvider, useConversation } from '@elevenlabs/react'
 import { motion } from 'framer-motion'
-import { Loader2, Phone, PhoneOff } from 'lucide-react'
+import { Loader2, Phone, PhoneOff, RefreshCw } from 'lucide-react'
 import { useTranslations } from 'next-intl'
+import { useState } from 'react'
 import type { Locale } from '@/i18n/config'
 
 const LOCALE_TO_LANG: Record<Locale, 'en' | 'tr' | 'ru' | 'de'> = {
@@ -40,35 +41,33 @@ export function VoiceCall({ locale }: { locale: Locale }) {
 
 function VoiceCallInner({ agentId, locale }: { agentId: string; locale: Locale }) {
   const tErrors = useTranslations('errors')
+  const [callError, setCallError] = useState<string | null>(null)
 
-  const {
-    startSession,
-    endSession,
-    status,
-    isSpeaking,
-    isListening,
-    isMuted,
-    setMuted,
-  } = useConversation({
-    onError: (err) => {
-      console.error('[VoiceCall] error:', err)
-    },
-    onConnect: ({ conversationId }) => {
-      console.log('[VoiceCall] connected:', conversationId)
-    },
-    onDisconnect: () => {
-      console.log('[VoiceCall] disconnected')
-    },
-    onModeChange: ({ mode }) => {
-      console.log('[VoiceCall] mode:', mode)
-    },
-  })
+  const { startSession, endSession, status, isSpeaking, isListening, isMuted, setMuted } =
+    useConversation({
+      onError: (err: unknown) => {
+        const msg = err instanceof Error ? err.message : String(err)
+        console.error('[VoiceCall] error:', msg)
+        setCallError(msg)
+      },
+      onConnect: ({ conversationId }) => {
+        console.log('[VoiceCall] connected:', conversationId)
+        setCallError(null)
+      },
+      onDisconnect: () => {
+        console.log('[VoiceCall] disconnected')
+      },
+      onModeChange: ({ mode }) => {
+        console.log('[VoiceCall] mode:', mode)
+      },
+    })
 
   const isConnecting = status === 'connecting'
   const isConnected = status === 'connected'
   const callActive = isConnected || isConnecting
 
   async function handleStart() {
+    setCallError(null)
     try {
       // Acquire mic permission EXPLICITLY before startSession. This is the
       // pattern in ElevenLabs's own integration docs and prevents a race
@@ -89,8 +88,11 @@ function VoiceCallInner({ agentId, locale }: { agentId: string; locale: Locale }
         },
       })
     } catch (err) {
-      console.error('[VoiceCall] start failed:', err)
-      alert(tErrors('micDenied'))
+      const msg = err instanceof Error ? err.message : String(err)
+      console.error('[VoiceCall] start failed:', msg)
+      setCallError(
+        msg.includes('Permission') || msg.includes('NotAllowed') ? tErrors('micDenied') : msg,
+      )
     }
   }
 
@@ -100,16 +102,19 @@ function VoiceCallInner({ agentId, locale }: { agentId: string; locale: Locale }
 
   if (!callActive) {
     return (
-      <motion.button
-        type="button"
-        onClick={handleStart}
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-        className="relative flex items-center gap-4 px-8 py-5 rounded-full font-bold transition-all shadow-xl bg-primary text-white"
-      >
-        <Phone className="w-6 h-6" />
-        <span className="text-lg tracking-tight">Start call</span>
-      </motion.button>
+      <div className="flex flex-col items-center gap-3">
+        <motion.button
+          type="button"
+          onClick={handleStart}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          className="relative flex items-center gap-4 px-8 py-5 rounded-full font-bold transition-all shadow-xl bg-primary text-white"
+        >
+          {callError ? <RefreshCw className="w-6 h-6" /> : <Phone className="w-6 h-6" />}
+          <span className="text-lg tracking-tight">{callError ? 'Try again' : 'Start call'}</span>
+        </motion.button>
+        {callError && <p className="text-sm text-red-500 max-w-xs text-center">{callError}</p>}
+      </div>
     )
   }
 
@@ -122,11 +127,7 @@ function VoiceCallInner({ agentId, locale }: { agentId: string; locale: Locale }
     )
   }
 
-  const statusLabel = isSpeaking
-    ? 'Agent speaking'
-    : isListening
-      ? 'Listening…'
-      : 'Connected'
+  const statusLabel = isSpeaking ? 'Agent speaking' : isListening ? 'Listening…' : 'Connected'
 
   return (
     <div className="relative flex items-center gap-4">
