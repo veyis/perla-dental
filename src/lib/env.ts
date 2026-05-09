@@ -4,7 +4,9 @@ import { z } from 'zod'
 
 const envSchema = z.object({
   ANTHROPIC_API_KEY: z.string().min(1),
-  DEEPGRAM_API_KEY: z.string().min(1),
+  // Speech-to-text + text-to-speech share one ElevenLabs account.
+  // Optional DEEPGRAM_API_KEY for the fallback adapter at lib/voice/stt-deepgram.ts
+  DEEPGRAM_API_KEY: z.string().min(1).optional(),
   ELEVENLABS_API_KEY: z.string().min(1),
   ELEVENLABS_VOICE_ID: z.string().min(1),
   SUPABASE_URL: z.string().url(),

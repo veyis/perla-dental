@@ -77,7 +77,7 @@ Lead data includes name, phone, email, **chronic-illness disclosure** (special-c
         ▼  (Vercel Fluid Compute, Node runtime, fra1 region)
 ┌────────────────────────────────────────────────────────────────┐
 │  /api/voice/stt                                                 │
-│    Deepgram Nova-3 Multilingual REST → text + language          │
+│    ElevenLabs Scribe v2 (batch) → text + language               │
 │                                                                  │
 │  /api/chat (UIMessageStream)                                    │
 │    streamText({                                                  │
@@ -114,7 +114,7 @@ All versions verified live as of 2026-05-08.
 | AI SDK | Vercel AI SDK | `ai@6.0.176` |
 | LLM | Anthropic Claude Haiku 4.5 | `claude-haiku-4-5` |
 | LLM SDK | `@ai-sdk/anthropic` | 3.0.74 |
-| STT | Deepgram Nova-3 Multilingual (REST prerecorded) | — |
+| STT | ElevenLabs Scribe v2 (batch) — vendor-consolidated with TTS | — |
 | TTS | ElevenLabs Flash v2.5 (streaming) | — |
 | Audio storage | Supabase Storage (`perla-tts`) | — |
 | VAD | `@ricky0123/vad-react` | 0.0.30 |
@@ -131,11 +131,10 @@ All versions verified live as of 2026-05-08.
 ### 4.1. External accounts to procure
 
 1. Anthropic API
-2. Deepgram
-3. ElevenLabs
-4. Supabase (project hosts `perla` schema for leads + audit, `perla-tts` Storage bucket, `touch_rate_limit` RPC for IP rate limiting)
-5. Resend (with verified domain)
-6. Vercel Pro
+2. ElevenLabs (covers BOTH STT via Scribe v2 and TTS via Flash v2.5)
+3. Supabase (project hosts `perla` schema for leads + audit, `perla-tts` Storage bucket, `touch_rate_limit` RPC for IP rate limiting)
+4. Resend (with verified domain)
+5. Vercel Pro
 
 ---
 
@@ -210,7 +209,7 @@ Target: ≤ 1.2 s from PTT release to first phoneme played.
 |---|---|
 | VAD trim + finalize | 50 ms |
 | Audio upload to `/api/voice/stt` | 100 ms |
-| Deepgram REST transcription | 300 ms |
+| ElevenLabs Scribe v2 batch transcription | 300 ms |
 | LLM first token (cached system prompt) | 400 ms |
 | First sentence ready (~15 tokens) | 150 ms |
 | ElevenLabs Flash TTS first audio | 75 ms |
@@ -226,7 +225,7 @@ PTT button press
   └─ @ricky0123/vad-react (Silero VAD via WASM)
        └─ trims silence + auto-detects end-of-speech
   └─ on release: blob → POST /api/voice/stt
-       └─ Deepgram Nova-3 Multilingual REST → { text, language }
+       └─ ElevenLabs Scribe v2 (batch) → { text, language }
   └─ useChat.sendMessage(text)
        └─ /api/chat streamText
             └─ on each sentence boundary:
@@ -384,7 +383,7 @@ When `escalateEmergency` fires:
 
 - **Kill switch:** `AGENT_DISABLED=true` env var → all chat returns: *"Our AI assistant is briefly unavailable for maintenance — please call +90 534 226 60 59 directly."* Flippable from Vercel dashboard, no deploy.
 - **No-train opt-out:** Anthropic API tier (default) does not train on customer data. Verified at account setup.
-- **Sub-processor list:** Vercel, Anthropic, Deepgram, ElevenLabs, Google, Resend — DPAs collected once, listed in privacy policy.
+- **Sub-processor list:** Vercel, Anthropic, ElevenLabs (STT + TTS), Supabase, Resend — DPAs collected once, listed in privacy policy.
 
 ---
 
@@ -427,7 +426,7 @@ Clinic to confirm or supply existing brand guidelines before Sprint 5.
 Three light touchpoints:
 
 1. **Cookie banner** (first visit, bottom): minimal; essential cookies only, no tracking.
-2. **Mic permission disclosure** (first mic press): one-time dialog explaining Deepgram and ElevenLabs (USA) processing; user can choose voice or text.
+2. **Mic permission disclosure** (first mic press): one-time dialog explaining ElevenLabs (USA) processing for both transcription (Scribe v2) and playback (Flash v2.5); user can choose voice or text.
 3. **Lead-capture modal** (right before `submitLead` fires): displays all collected fields plus consent checkbox plus Send/Cancel buttons.
 
 ### 9.6. Mobile
@@ -468,7 +467,8 @@ perla-agent/
 │  │  ├─ refusals.ts
 │  │  └─ types.ts
 │  ├─ voice/
-│  │  ├─ stt.ts                            ← Deepgram REST client
+│  │  ├─ stt.ts                            ← ElevenLabs Scribe v2 client
+│  │  ├─ stt-deepgram.ts                   ← Deepgram fallback (unused by default)
 │  │  ├─ tts.ts                            ← ElevenLabs streaming → Supabase Storage
 │  │  └─ sentence-splitter.ts
 │  ├─ leads/
@@ -561,10 +561,10 @@ Local commands: `pnpm dev`, `pnpm test`, `pnpm test:e2e`, `pnpm eval`, `pnpm eva
 # AI provider
 ANTHROPIC_API_KEY=
 
-# Voice
-DEEPGRAM_API_KEY=
+# Voice (ElevenLabs handles both STT via Scribe v2 and TTS via Flash v2.5)
 ELEVENLABS_API_KEY=
 ELEVENLABS_VOICE_ID=
+# DEEPGRAM_API_KEY=                       # only if flipping to lib/voice/stt-deepgram.ts
 
 # Supabase (project: stoxpulse, ref: zgqzsypxtcygdqnflatp, region: us-west-2)
 SUPABASE_URL=https://zgqzsypxtcygdqnflatp.supabase.co
