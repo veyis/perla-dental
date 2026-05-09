@@ -266,7 +266,11 @@
       }
     },
     "testing": {
-      "attached_tests": [],
+      "attached_tests": [
+        {"testId": "test_8501kr6rdh8sf0p9exzcv1e2b302"},
+        {"testId": "test_9101kr6sabz3fm0ab34456jvpdc6"},
+        {"testId": "test_3301kr6saj4wen4vgbetgt9bta16"}
+      ],
       "referenced_tests_ids": [
         "test_8501kr6rdh8sf0p9exzcv1e2b302",
         "test_9101kr6sabz3fm0ab34456jvpdc6",
@@ -277,10 +281,10 @@
     "guardrails": {
       "version": "1",
       "focus": {
-        "is_enabled": true
+        "is_enabled": false
       },
       "prompt_injection": {
-        "is_enabled": true
+        "is_enabled": false
       },
       "content": {
         "execution_mode": "streaming",
