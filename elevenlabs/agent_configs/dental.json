@@ -105,6 +105,12 @@
                     "agent": {
                         "first_message": "Perla Dental Clinics, ben Perla. Size nasıl yardımcı olabilirim?",
                         "language": "tr"
+                    },
+                    "tts": {
+                        "voice_id": "TLSC2qq8RlDdm7tETUHz",
+                        "stability": 0.55,
+                        "speed": 1,
+                        "similarity_boost": 0.75
                     }
                 }
             },
@@ -113,6 +119,12 @@
                     "agent": {
                         "first_message": "Perla Dental Clinics, это Perla. Чем могу вам помочь?",
                         "language": "ru"
+                    },
+                    "tts": {
+                        "voice_id": "sNQyZH8Wfcnv7zh3rHxR",
+                        "stability": 0.5,
+                        "speed": 1,
+                        "similarity_boost": 0.75
                     }
                 }
             },
@@ -121,6 +133,12 @@
                     "agent": {
                         "first_message": "Perla Dental Clinics, hier ist Perla. Wie kann ich Ihnen helfen?",
                         "language": "de"
+                    },
+                    "tts": {
+                        "voice_id": "coPfQIqaxowKv5u2s2bV",
+                        "stability": 0.5,
+                        "speed": 1,
+                        "similarity_boost": 0.75
                     }
                 }
             }
