@@ -70,14 +70,12 @@ function VoiceCallInner({ agentId, locale }: { agentId: string; locale: Locale }
 
   async function handleStart() {
     try {
-      // EXPLICIT websocket transport. The default in @elevenlabs/react@1.6 is
-      // WebRTC via LiveKit, which is currently failing with
-      // "v1 RTC path not found" — the SDK speaks LiveKit v2 but ElevenLabs's
-      // server is on v1. WebSocket bypasses LiveKit entirely. Barge-in still
-      // works because VAD is client-side, not transport-bound.
+      // Default WebRTC transport (LiveKit). The underlying livekit-client v1/v2
+      // mismatch (elevenlabs/packages#645) is patched via the
+      // `livekit-client: 2.16.1` override in package.json.
       await startSession({
         agentId,
-        connectionType: 'websocket',
+        connectionType: 'webrtc',
         overrides: {
           agent: { language: LOCALE_TO_LANG[locale] },
         },

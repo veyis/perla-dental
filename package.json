@@ -56,5 +56,17 @@
   },
   "engines": {
     "node": ">=22"
+  },
+  "//": "Pin livekit-client to 2.16.1 to work around the @elevenlabs/react LiveKit v1/v2 mismatch (GitHub elevenlabs/packages#645). Newer livekit-client probes /rtc/v1, ElevenLabs server only serves /rtc, fallback path fails on some networks.",
+  "pnpm": {
+    "overrides": {
+      "livekit-client": "2.16.1"
+    }
+  },
+  "overrides": {
+    "livekit-client": "2.16.1"
+  },
+  "resolutions": {
+    "livekit-client": "2.16.1"
   }
 }
