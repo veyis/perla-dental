@@ -45,5 +45,8 @@
     "email": "info@perladentalclinics.com",
     "privacy": "Privacy Policy",
     "terms": "Terms"
+  },
+  "agent": {
+    "firstMessage": "Welcome to Perla Dental Clinics, I am the clinic's digital assistant. How may I help you today?"
   }
 }

@@ -45,5 +45,8 @@
     "email": "info@perladentalclinics.com",
     "privacy": "Gizlilik Politikası",
     "terms": "Şartlar"
+  },
+  "agent": {
+    "firstMessage": "Perla Diş Klinikleri'ne hoş geldiniz, ben kliniğin dijital asistanıyım. Size bugün nasıl yardımcı olabilirim?"
   }
 }
