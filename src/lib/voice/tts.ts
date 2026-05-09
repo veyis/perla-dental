@@ -1,11 +1,8 @@
 import { put } from '@vercel/blob'
-import { env } from '@/lib/env'
 import type { Locale } from '@/i18n/config'
+import { env } from '@/lib/env'
 
-export async function synthesizeAndStoreSentence(
-  text: string,
-  language: Locale,
-): Promise<string> {
+export async function synthesizeAndStoreSentence(text: string, language: Locale): Promise<string> {
   const url = `https://api.elevenlabs.io/v1/text-to-speech/${env.ELEVENLABS_VOICE_ID}/stream?output_format=mp3_44100_128`
   const res = await fetch(url, {
     method: 'POST',
