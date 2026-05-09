@@ -8,7 +8,7 @@
       "keywords": []
     },
     "turn": {
-      "turn_timeout": 7,
+      "turn_timeout": 20,
       "silence_end_call_timeout": 15,
       "soft_timeout_config": {
         "timeout_seconds": 5,
@@ -145,7 +145,7 @@
         "backup_llm_config": {
           "preference": "default"
         },
-        "cascade_timeout_seconds": 8,
+        "cascade_timeout_seconds": 15,
         "tools": [],
         "custom_llm": {
           "url": "https://perladentalclinic.vercel.app/api/voice-llm",
