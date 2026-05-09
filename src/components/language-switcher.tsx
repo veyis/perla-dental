@@ -1,7 +1,6 @@
 'use client'
 
 import { AnimatePresence, motion } from 'framer-motion'
-import { Check, ChevronDown, Globe } from 'lucide-react'
 import { usePathname, useRouter } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
 import type { Locale } from '@/i18n/config'
@@ -60,15 +59,10 @@ export function LanguageSwitcher({ current }: { current: Locale }) {
         aria-label={`Language: ${NAMES[current]}`}
         className="flex items-center gap-2 px-3 py-2 rounded-full text-sm font-medium border border-black/10 bg-white/60 hover:bg-white transition-colors"
       >
-        <Globe className="w-4 h-4 text-primary" aria-hidden />
         <span className="text-base leading-none" aria-hidden>
           {FLAGS[current]}
         </span>
-        <span className="hidden sm:inline">{NAMES[current]}</span>
-        <ChevronDown
-          className={`w-3.5 h-3.5 text-text-muted transition-transform ${open ? 'rotate-180' : ''}`}
-          aria-hidden
-        />
+        <span>{NAMES[current]}</span>
       </button>
 
       <AnimatePresence>
@@ -101,7 +95,6 @@ export function LanguageSwitcher({ current }: { current: Locale }) {
                       {FLAGS[l]}
                     </span>
                     <span className="flex-1 text-left">{NAMES[l]}</span>
-                    {isActive && <Check className="w-4 h-4 text-primary" aria-hidden />}
                   </button>
                 </li>
               )
