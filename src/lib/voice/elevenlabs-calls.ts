@@ -58,7 +58,7 @@ export async function getElevenLabsConversation(conversationId: string) {
     return null
   }
 
-  return res.json()
+  return res.json() as Promise<ElevenLabsConversation>
 }
 
 export async function getElevenLabsRecordingUrl(conversationId: string) {

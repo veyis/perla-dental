@@ -16,12 +16,7 @@
  */
 
 import { anthropic } from '@ai-sdk/anthropic'
-import {
-  type ModelMessage,
-  convertToModelMessages,
-  streamText,
-  type UIMessage,
-} from 'ai'
+import { type ModelMessage, streamText } from 'ai'
 import { staticSystemBlocks } from '@/lib/agent/prompt'
 import { buildTools } from '@/lib/agent/tools'
 import { isAgentDisabled } from '@/lib/env'
@@ -196,16 +191,16 @@ function convertOpenAIMessagesToModelMessages(messages: OpenAIMessage[]): ModelM
     if (m.role === 'tool') {
       // Tool result coming back from a previous tool_call.
       out.push({
-        role: 'tool',
+        role: 'tool' as const,
         content: [
           {
-            type: 'tool-result',
+            type: 'tool-result' as const,
             toolCallId: m.tool_call_id ?? '',
             toolName: m.name ?? '',
-            output: { type: 'json', value: tryParseJson(m.content ?? '') },
+            output: { type: 'json' as const, value: tryParseJson(m.content ?? '') },
           },
         ],
-      } as unknown as ModelMessage)
+      } as ModelMessage)
       continue
     }
     if (m.role === 'assistant') {
@@ -221,7 +216,7 @@ function convertOpenAIMessagesToModelMessages(messages: OpenAIMessage[]): ModelM
           })
         }
       }
-      out.push({ role: 'assistant', content: parts } as unknown as ModelMessage)
+      out.push({ role: 'assistant' as const, content: parts } as unknown as ModelMessage)
       continue
     }
     if (m.role === 'user' && m.content) {
@@ -238,8 +233,3 @@ function tryParseJson(s: string): unknown {
     return s
   }
 }
-
-// Suppress unused-import warning — convertToModelMessages and UIMessage are
-// re-exports kept here for future direct use if we move to UIMessage shape.
-void convertToModelMessages
-void {} as UIMessage | undefined
