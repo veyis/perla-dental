@@ -140,7 +140,7 @@ export async function POST(req: Request) {
       })
 
       const result = streamText({
-        model: anthropic('claude-haiku-4-5'),
+        model: anthropic('claude-haiku-4-5-20251001'),
         // We split the system prompt: static cacheable block (gets 1h
         // ephemeral cache) + dynamic state/language block. AI SDK 6 wants
         // explicit acknowledgment for system-as-message; passing

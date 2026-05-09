@@ -34,6 +34,7 @@ export type EscalateToHumanInput = z.infer<typeof escalateToHumanParams>
 export type ProposeLeadResult =
   | { status: 'pending_consent'; fields: SubmitLeadInput; fingerprint: string }
   | { status: 'saved'; fields: SubmitLeadInput; leadId: string }
+  | { status: 'error'; reason: string }
 
 export type ToolDeps = {
   /**

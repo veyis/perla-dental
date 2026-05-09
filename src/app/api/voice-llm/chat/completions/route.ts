@@ -105,42 +105,63 @@ export async function POST(req: Request) {
   const messages = convertOpenAIMessagesToModelMessages(body.messages ?? [])
 
   const tools = buildTools({
+    // Voice path: never throw out of a tool. AI SDK propagates execute()
+    // throws as `error` parts in the stream, which ElevenLabs surfaces as
+    // `custom_llm_error` and ends the call. Return a discriminated error
+    // result so the model can apologize and continue instead.
     onProposeLead: async (input) => {
-      const result = await submitLead({
-        ip,
-        conversationId,
-        input,
-        consentText:
-          'Verbal consent given to AI voice agent during call to share contact and health details with Perla Dental Clinics.',
-        source: 'voice-agent',
-      })
-      if (result.success) {
-        await audit({ kind: 'lead_submitted', leadId: result.leadId, conversationId })
-        return { status: 'saved' as const, fields: input, leadId: result.leadId }
+      try {
+        const result = await submitLead({
+          ip,
+          conversationId,
+          input,
+          consentText:
+            'Verbal consent given to AI voice agent during call to share contact and health details with Perla Dental Clinics.',
+          source: 'voice-agent',
+        })
+        if (result.success) {
+          await audit({ kind: 'lead_submitted', leadId: result.leadId, conversationId })
+          return { status: 'saved' as const, fields: input, leadId: result.leadId }
+        }
+        logger.warn({ conversationId, reason: result.reason }, '[voice-llm] submitLead failed')
+        return { status: 'error' as const, reason: result.reason }
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err)
+        logger.error({ err: msg, conversationId }, '[voice-llm] submitLead threw')
+        return { status: 'error' as const, reason: msg }
       }
-      throw new Error(`submitLead failed: ${result.reason}`)
     },
     onEscalateEmergency: async (input) => {
-      await audit({ kind: 'emergency_escalated', conversationId, summary: input.summary })
+      try {
+        await audit({ kind: 'emergency_escalated', conversationId, summary: input.summary })
+      } catch (err) {
+        logger.error({ err, conversationId }, '[voice-llm] escalateEmergency audit threw')
+      }
       return { ack: true }
     },
     onEscalateToHuman: async (input) => {
-      await audit({
-        kind: 'guardrail_event',
-        conversationId,
-        detail: `escalate_to_human: ${input.reason}${
-          input.contactInfo ? ` (contact: ${input.contactInfo})` : ''
-        }`,
-      })
+      try {
+        await audit({
+          kind: 'guardrail_event',
+          conversationId,
+          detail: `escalate_to_human: ${input.reason}${
+            input.contactInfo ? ` (contact: ${input.contactInfo})` : ''
+          }`,
+        })
+      } catch (err) {
+        logger.error({ err, conversationId }, '[voice-llm] escalateToHuman audit threw')
+      }
       return { ack: true }
     },
   })
 
-  // 1-hour ephemeral cache control on the static system prompt drops
-  // TTFT from ~2-3s to ~300ms after the first call, keeping us under
-  // ElevenLabs Custom LLM's ~6-8s timeout.
+  // Pin to versioned ID (not alias) so behavior is deterministic and we
+  // pay the prompt-cache price only once per 1h TTL window. 1-hour
+  // ephemeral cache on the static system prompt drops TTFT from ~2-3s
+  // to ~300ms after the first call, keeping us under ElevenLabs's
+  // cascade_timeout (15s in our config).
   const result = streamText({
-    model: anthropic('claude-haiku-4-5'),
+    model: anthropic('claude-haiku-4-5-20251001'),
     allowSystemInMessages: true,
     messages: [
       {
@@ -172,6 +193,11 @@ export async function POST(req: Request) {
   const created = Math.floor(Date.now() / 1000)
   const model = 'claude-haiku-4-5'
 
+  // Generic spoken fallback the agent uses when the stream errors mid-turn.
+  // Plain text only, mirrors caller language sloppily — better than silence
+  // or a hard `custom_llm_error` that ends the call.
+  const FALLBACK_TEXT = "I'm sorry, could you repeat that?"
+
   const sse = new ReadableStream<Uint8Array>({
     async start(controller) {
       function send(payload: object) {
@@ -180,6 +206,23 @@ export async function POST(req: Request) {
 
       let textBytes = 0
       let chunkCount = 0
+      let recovered = false
+
+      function emitFallback(reason: string) {
+        if (textBytes > 0) return // Already produced text — don't overwrite.
+        recovered = true
+        logger.warn({ conversationId, reason }, '[voice-llm] emitting fallback text')
+        send({
+          id,
+          object: 'chat.completion.chunk',
+          created,
+          model,
+          choices: [{ index: 0, delta: { content: FALLBACK_TEXT }, finish_reason: null }],
+        })
+        textBytes += FALLBACK_TEXT.length
+        chunkCount++
+      }
+
       try {
         send({
           id,
@@ -200,13 +243,26 @@ export async function POST(req: Request) {
               model,
               choices: [{ index: 0, delta: { content: part.text }, finish_reason: null }],
             })
+          } else if (part.type === 'tool-call') {
+            console.log('[voice-llm] tool-call', {
+              conversationId,
+              toolName: (part as { toolName?: string }).toolName,
+              input: JSON.stringify((part as { input?: unknown }).input ?? {}).slice(0, 300),
+            })
+          } else if (part.type === 'tool-result') {
+            console.log('[voice-llm] tool-result', {
+              conversationId,
+              toolName: (part as { toolName?: string }).toolName,
+              output: JSON.stringify((part as { output?: unknown }).output ?? {}).slice(0, 300),
+            })
           } else if (part.type === 'error') {
             const err = part.error
             const errMsg = err instanceof Error ? err.message : String(err)
             console.error('[voice-llm] stream error part:', errMsg)
-            send({
-              error: { message: errMsg, type: 'server_error' },
-            })
+            // Don't forward as OpenAI `error` chunk — that ends the call.
+            // If we already streamed some text, just stop cleanly. Otherwise
+            // emit a graceful fallback so the agent stays alive.
+            emitFallback(errMsg)
           }
         }
 
@@ -233,12 +289,36 @@ export async function POST(req: Request) {
 
         controller.enqueue(encoder.encode('data: [DONE]\n\n'))
         controller.close()
-        console.log('[voice-llm] stream done', { chunks: chunkCount, bytes: textBytes })
+        console.log('[voice-llm] stream done', {
+          conversationId,
+          chunks: chunkCount,
+          bytes: textBytes,
+          recovered,
+        })
       } catch (err) {
         const msg = err instanceof Error ? err.message : String(err)
         console.error('[voice-llm] fatal stream error:', msg)
+        // Even on fatal error, complete the SSE stream cleanly with a
+        // fallback so ElevenLabs plays something instead of dropping the
+        // call with custom_llm_error.
         try {
-          controller.enqueue(encoder.encode(`data: {"error":${JSON.stringify(msg)}}\n\n`))
+          if (textBytes === 0) {
+            send({
+              id,
+              object: 'chat.completion.chunk',
+              created,
+              model,
+              choices: [{ index: 0, delta: { content: FALLBACK_TEXT }, finish_reason: null }],
+            })
+          }
+          send({
+            id,
+            object: 'chat.completion.chunk',
+            created,
+            model,
+            choices: [{ index: 0, delta: {}, finish_reason: 'stop' }],
+          })
+          controller.enqueue(encoder.encode('data: [DONE]\n\n'))
           controller.close()
         } catch {
           // already closed

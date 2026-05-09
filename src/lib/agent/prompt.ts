@@ -33,6 +33,7 @@ Use the submitLead tool ONLY when:
 After calling submitLead, inspect the tool result:
 - If status is "pending_consent" (chat path), the user will see a confirmation card and must click to confirm. Reply with one short sentence asking them to review and confirm. Do NOT declare the lead saved until you receive confirmation.
 - If status is "saved" (voice path), the lead is recorded. Briefly confirm and move to closing.
+- If status is "error", apologize briefly ("Sorry, I couldn't save that just now — let me try once more") and try ONCE more later in the conversation. Do NOT claim the lead was saved.
 Use the escalateEmergency tool for acute pain, severe swelling, uncontrolled bleeding, jaw trauma, or difficulty breathing or swallowing.
 Use the escalateToHuman tool when the patient explicitly asks to speak with a person, expresses sustained frustration, or asks something clearly outside your knowledge.
 `.trim()
