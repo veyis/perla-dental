@@ -33,7 +33,7 @@ export function Hero({ title, subtitle, status, locale }: HeroProps) {
 
       {/* Subtle Grid Pattern */}
       <div className="absolute inset-0 -z-10 opacity-[0.03] pointer-events-none" 
-           style={{ backgroundImage: 'radial-gradient(#1e5f74 0.5px, transparent 0.5px)', backgroundSize: '24px 24px' }} />
+           style={{ backgroundImage: 'radial-gradient(var(--color-primary) 0.5px, transparent 0.5px)', backgroundSize: '24px 24px' }} />
 
       <div className="container mx-auto px-6 relative">
         <div className="grid lg:grid-cols-12 gap-16 items-center">
