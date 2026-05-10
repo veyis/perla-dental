@@ -24,6 +24,7 @@ import { type ModelMessage, streamText } from 'ai'
 import { staticSystemBlocks } from '@/lib/agent/prompt'
 import { buildTools } from '@/lib/agent/tools'
 import { isAgentDisabled } from '@/lib/env'
+import { phoneCountry } from '@/lib/leads/phone-country'
 import { submitLead } from '@/lib/leads/submit-lead'
 import { audit } from '@/lib/observability/audit'
 import { logger } from '@/lib/observability/logger'
@@ -111,6 +112,10 @@ export async function POST(req: Request) {
     // result so the model can apologize and continue instead.
     onProposeLead: async (input) => {
       try {
+        // Voice-agent leads have no browser headers (the request comes from
+        // ElevenLabs servers). Derive country from the phone E.164 prefix
+        // so admin still sees a flag/country instead of "—".
+        const derivedCountry = phoneCountry(input.phone)
         const result = await submitLead({
           ip,
           conversationId,
@@ -118,6 +123,7 @@ export async function POST(req: Request) {
           consentText:
             'Verbal consent given to AI voice agent during call to share contact and health details with Perla Dental Clinics.',
           source: 'voice-agent',
+          countryCode: derivedCountry ?? undefined,
         })
         if (result.success) {
           await audit({ kind: 'lead_submitted', leadId: result.leadId, conversationId })

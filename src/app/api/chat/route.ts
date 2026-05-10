@@ -11,9 +11,12 @@ import { buildSystemPrompt, staticSystemBlocks } from '@/lib/agent/prompt'
 import { buildTools } from '@/lib/agent/tools'
 import type { ConversationState } from '@/lib/agent/types'
 import { isAgentDisabled } from '@/lib/env'
+import { upsertChatSession } from '@/lib/leads/chat-sessions'
 import { signFields } from '@/lib/leads/consent-hmac'
+import { appendChatMessage } from '@/lib/leads/supabase-leads'
 import { audit } from '@/lib/observability/audit'
 import { logger } from '@/lib/observability/logger'
+import { extractRequestContext } from '@/lib/observability/request-context'
 import { sanitizeForTTS } from '@/lib/voice/sanitize'
 import { sentenceFlush } from '@/lib/voice/sentence-splitter'
 import { synthesizeAndStoreSentence } from '@/lib/voice/tts'
@@ -34,6 +37,16 @@ export async function POST(req: Request) {
   }
 
   const body = (await req.json()) as ChatBody
+
+  // Capture request metadata before the streaming response starts so the
+  // admin UI can show where this conversation came from. Fire-and-forget;
+  // a failed upsert must never break the chat stream.
+  const reqCtx = extractRequestContext(req)
+  if (body.conversationId) {
+    upsertChatSession({ conversationId: body.conversationId, ctx: reqCtx }).catch((err) => {
+      logger.error({ err }, 'chat_sessions upsert failed')
+    })
+  }
 
   const stateForPrompt: ConversationState = {
     conversationId: body.conversationId,
@@ -89,9 +102,10 @@ export async function POST(req: Request) {
         msgCount: body.messages.length,
       })
 
-      // Log the last user message — use Vercel Logs (free, searchable),
-      // not the Supabase audit_events table (which is reserved for
-      // regulated events: leads, emergencies, guardrail trips).
+      // Persist the last user message to perla.chat_messages so the admin
+      // UI can render transcripts. Also mirror to Vercel Logs for ad-hoc
+      // searching. DB write is fire-and-forget — a failed insert must not
+      // break the chat stream.
       const lastUserMessage = body.messages[body.messages.length - 1]
       if (lastUserMessage && lastUserMessage.role === 'user') {
         const userText = lastUserMessage.parts
@@ -102,6 +116,16 @@ export async function POST(req: Request) {
           { conversationId: body.conversationId, role: 'user', text: userText.slice(0, 500) },
           'chat_message',
         )
+        if (userText) {
+          appendChatMessage({
+            conversationId: body.conversationId,
+            role: 'user',
+            content: userText,
+            language: body.language,
+          }).catch((err) => {
+            logger.error({ err }, 'chat_messages insert (user) failed')
+          })
+        }
       }
 
       // TTS calls run in PARALLEL (faster) — each audio part includes a
@@ -175,6 +199,14 @@ export async function POST(req: Request) {
               },
               'chat_message',
             )
+            appendChatMessage({
+              conversationId: body.conversationId,
+              role: 'assistant',
+              content: event.text,
+              language: body.language,
+            }).catch((err) => {
+              logger.error({ err }, 'chat_messages insert (assistant) failed')
+            })
           }
           // Wait for all parallel TTS calls to finish before the response
           // closes — otherwise the last audio chunks never reach the client.

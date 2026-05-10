@@ -20,6 +20,19 @@ export async function submitLead(args: {
   source?: string
   userAgentShort?: string
   summary?: string
+  // Browser/geo metadata captured from the request that submitted the
+  // lead. All optional — voice-agent leads come through a server-to-server
+  // webhook and have none of these.
+  ipAddress?: string | null
+  city?: string | null
+  region?: string | null
+  postalCode?: string | null
+  continent?: string | null
+  timezone?: string | null
+  latitude?: number | null
+  longitude?: number | null
+  referrer?: string | null
+  acceptLanguage?: string | null
 }): Promise<SubmitLeadResult> {
   const allowed = await allowLead(args.ip)
   if (!allowed) {
@@ -47,6 +60,16 @@ export async function submitLead(args: {
       source: args.source,
       countryCode: args.countryCode,
       userAgentShort: args.userAgentShort,
+      ipAddress: args.ipAddress,
+      city: args.city,
+      region: args.region,
+      postalCode: args.postalCode,
+      continent: args.continent,
+      timezone: args.timezone,
+      latitude: args.latitude,
+      longitude: args.longitude,
+      referrer: args.referrer,
+      acceptLanguage: args.acceptLanguage,
     })
     leadId = result.id
   } catch (err) {

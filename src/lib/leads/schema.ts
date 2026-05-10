@@ -25,4 +25,15 @@ export type LeadRowInput = Pick<
   | 'source'
   | 'userAgentShort'
   | 'summary'
->
+> & {
+  ipAddress?: string | null
+  city?: string | null
+  region?: string | null
+  postalCode?: string | null
+  continent?: string | null
+  timezone?: string | null
+  latitude?: number | null
+  longitude?: number | null
+  referrer?: string | null
+  acceptLanguage?: string | null
+}

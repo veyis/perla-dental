@@ -3,6 +3,7 @@ import { verifyFields } from '@/lib/leads/consent-hmac'
 import { submitLead } from '@/lib/leads/submit-lead'
 import { audit } from '@/lib/observability/audit'
 import { logger } from '@/lib/observability/logger'
+import { extractRequestContext } from '@/lib/observability/request-context'
 
 export const maxDuration = 30
 
@@ -41,16 +42,27 @@ export async function POST(req: Request): Promise<Response> {
     return Response.json({ error: 'fingerprint_mismatch' }, { status: 400 })
   }
 
-  const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown'
-  const country = req.headers.get('x-vercel-ip-country') ?? undefined
+  const ctx = extractRequestContext(req)
+  const ip = ctx.ip ?? 'unknown'
 
   const result = await submitLead({
     ip,
     conversationId: parsed.conversationId,
     input: fieldsResult.data,
     consentText: CONSENT_TEXT,
-    countryCode: country,
+    countryCode: ctx.country ?? undefined,
     source: 'chat',
+    userAgentShort: ctx.userAgent?.slice(0, 200) ?? undefined,
+    ipAddress: ctx.ip,
+    city: ctx.city,
+    region: ctx.region,
+    postalCode: ctx.postalCode,
+    continent: ctx.continent,
+    timezone: ctx.timezone,
+    latitude: ctx.latitude,
+    longitude: ctx.longitude,
+    referrer: ctx.referrer,
+    acceptLanguage: ctx.acceptLanguage,
   })
 
   if (!result.success) {

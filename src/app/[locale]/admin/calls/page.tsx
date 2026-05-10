@@ -17,6 +17,8 @@ import {
   getElevenLabsConversations,
 } from '@/lib/voice/elevenlabs-calls'
 
+export const dynamic = 'force-dynamic'
+
 function statusVariant(status: ElevenLabsCallStatus): 'default' | 'secondary' | 'destructive' {
   if (status === 'done') return 'default'
   if (status === 'failed') return 'destructive'

@@ -1,13 +1,15 @@
 import { MessageSquare, PhoneCall, TrendingUp, Users } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { getAuditEvents, getLeads } from '@/lib/leads/supabase-leads'
+import { getChatMessages, getLeads } from '@/lib/leads/supabase-leads'
 import { getElevenLabsConversations } from '@/lib/voice/elevenlabs-calls'
+
+export const dynamic = 'force-dynamic'
 
 export default async function AdminDashboardPage() {
   const [leads, calls, chats] = await Promise.all([
     getLeads(),
     getElevenLabsConversations(),
-    getAuditEvents('chat_message'),
+    getChatMessages(),
   ])
 
   // Count unique chat conversations

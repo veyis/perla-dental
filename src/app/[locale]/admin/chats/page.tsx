@@ -10,34 +10,36 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { getAuditEvents } from '@/lib/leads/supabase-leads'
+import { getChatMessages } from '@/lib/leads/supabase-leads'
+
+export const dynamic = 'force-dynamic'
 
 export default async function AdminChatsPage() {
-  const events = await getAuditEvents('chat_message')
+  const messages = await getChatMessages()
 
-  // Group events by conversation_id
+  // Group messages by conversation_id
   const conversations: Record<
     string,
     { id: string; lastMessageAt: string; messageCount: number; preview: string }
   > = {}
 
-  for (const event of events) {
-    const convId = event.conversation_id
+  for (const msg of messages) {
+    const convId = msg.conversation_id
     if (!convId) continue
 
     if (!conversations[convId]) {
       conversations[convId] = {
         id: convId,
-        lastMessageAt: event.created_at,
+        lastMessageAt: msg.created_at,
         messageCount: 0,
-        preview: (event.detail.content as string) || '',
+        preview: (msg.content as string) || '',
       }
     }
 
     conversations[convId].messageCount++
-    if (new Date(event.created_at) > new Date(conversations[convId].lastMessageAt)) {
-      conversations[convId].lastMessageAt = event.created_at
-      conversations[convId].preview = (event.detail.content as string) || ''
+    if (new Date(msg.created_at) > new Date(conversations[convId].lastMessageAt)) {
+      conversations[convId].lastMessageAt = msg.created_at
+      conversations[convId].preview = (msg.content as string) || ''
     }
   }
 
