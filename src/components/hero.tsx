@@ -3,6 +3,7 @@
 import { motion, useScroll, useTransform } from 'framer-motion'
 import { ArrowRight, ShieldCheck, Star, Zap } from 'lucide-react'
 import { useRef } from 'react'
+import Image from 'next/image'
 import { Persona } from '@/components/ai-elements'
 import type { Locale } from '@/i18n/config'
 import { VoiceCall } from './voice-call'
