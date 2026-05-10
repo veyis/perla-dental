@@ -1,0 +1,6 @@
+name = "perla-voice-proxy"
+main = "src/index.ts"
+compatibility_date = "2024-04-05"
+
+# We want this to run as close to the user as possible (no specific placement)
+# Workers are global by default.

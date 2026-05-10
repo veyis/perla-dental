@@ -60,7 +60,7 @@ export function Hero({ title, subtitle, status, locale, agentId }: HeroProps) {
                     key={i}
                     className="w-6 h-6 rounded-full border-2 border-white bg-accent overflow-hidden"
                   >
-                    <img
+                    <Image
                       src="/images/smile.png"
                       alt="Patient"
                       width={24}
@@ -87,7 +87,7 @@ export function Hero({ title, subtitle, status, locale, agentId }: HeroProps) {
               className="text-6xl md:text-8xl font-heading font-bold mb-8 leading-[0.95] tracking-tight"
             >
               {title.split('—').map((part, i) => (
-                <span key={i} className="block">
+                <span key={part} className="block">
                   {i === 1 ? (
                     <span className="text-gradient italic font-normal serif">{part}</span>
                   ) : (
@@ -152,12 +152,12 @@ export function Hero({ title, subtitle, status, locale, agentId }: HeroProps) {
             <motion.div style={{ y: y1 }} className="relative aspect-[4/5] w-full">
               {/* Main Image Container */}
               <div className="relative h-full w-full rounded-[60px] overflow-hidden shadow-[0_40px_100px_rgba(0,0,0,0.15)] group">
-                <img
+                <Image
                   src="/images/hero.png"
                   alt="Premium Dental Clinic"
-                  className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-[2s]"
-                  fetchPriority="high"
-                  loading="eager"
+                  fill
+                  className="object-cover group-hover:scale-110 transition-transform duration-[2s]"
+                  priority
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-60" />
 

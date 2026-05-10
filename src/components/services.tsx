@@ -1,7 +1,7 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { Clock, Heart, Shield, Sparkles } from 'lucide-react'
+import { Clock, Shield, Sparkles } from 'lucide-react'
 import Image from 'next/image'
 
 const services = [
@@ -73,7 +73,7 @@ export function Services() {
               <h3 className="text-2xl font-heading font-bold mb-4">{service.title}</h3>
               <p className="text-text-muted leading-relaxed mb-6">{service.description}</p>
               <a
-                href="#"
+                href="#contact"
                 className="inline-flex items-center gap-2 text-primary font-bold hover:gap-3 transition-all"
               >
                 Learn More <span className="text-xl">→</span>

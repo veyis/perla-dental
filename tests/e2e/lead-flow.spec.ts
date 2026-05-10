@@ -16,7 +16,7 @@ import { expect, test } from '@playwright/test'
 test('homepage renders hero, mic button, language switcher', async ({ page }) => {
   await page.goto('/en')
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
-  await expect(page.getByText(/hold to speak/i)).toBeVisible()
+  await expect(page.getByRole('button', { name: /start call/i })).toBeVisible()
   await expect(page.getByLabel('Language')).toBeVisible()
 })
 

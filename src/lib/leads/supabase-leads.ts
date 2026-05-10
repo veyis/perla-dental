@@ -86,6 +86,35 @@ export async function getLeadById(id: string) {
   return data
 }
 
+export async function getLeadByConversationId(conversationId: string) {
+  const sb = getServerClient()
+  const { data, error } = await sb
+    .from('leads')
+    .select('id')
+    .eq('conversation_id', conversationId)
+    .maybeSingle()
+  if (error) throw new Error(`Failed to fetch lead: ${error.message}`)
+  return data
+}
+
+export async function updateLead(id: string, lead: LeadRowInput): Promise<void> {
+  const sb = getServerClient()
+  const { error } = await sb
+    .from('leads')
+    .update({
+      full_name: lead.fullName,
+      phone: lead.phone,
+      email: lead.email,
+      preferred_language: lead.preferredLanguage,
+      interest: lead.interest,
+      chronic_illnesses: lead.chronicIllnesses,
+      summary: lead.summary ?? null,
+    })
+    .eq('id', id)
+
+  if (error) throw new Error(`Lead update failed: ${error.message}`)
+}
+
 export async function appendChatMessage(args: {
   conversationId: string
   role: 'user' | 'assistant'

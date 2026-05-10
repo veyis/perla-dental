@@ -22,10 +22,10 @@ test.use({
 })
 
 const LOCALES = [
-  { code: 'en', path: '/', subtitle: 'Your dental holiday — guided in real time.' },
-  { code: 'tr', path: '/tr', subtitle: 'Diş tatiliniz — gerçek zamanlı rehberlik.' },
-  { code: 'ru', path: '/ru', subtitle: 'Стоматологический отдых — в режиме реального времени.' },
-  { code: 'de', path: '/de', subtitle: 'Ihr Zahnurlaub — in Echtzeit begleitet.' },
+  { code: 'en', path: '/', subtitle: 'Advanced Treatments — Smiles That Last.' },
+  { code: 'tr', path: '/tr', subtitle: 'İleri Tedaviler — Kalıcı Gülüşler.' },
+  { code: 'ru', path: '/ru', subtitle: 'Передовые методы лечения — улыбки, которые остаются.' },
+  { code: 'de', path: '/de', subtitle: 'Modernste Behandlungen — Lächeln, das bleibt.' },
 ] as const
 
 test('1. Homepage loads at /', async ({ page }) => {

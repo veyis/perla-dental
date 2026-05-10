@@ -1,6 +1,5 @@
 'use client'
 
-import { motion } from 'framer-motion'
 import { Award, MapPin, Phone, ShieldCheck, Users } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 

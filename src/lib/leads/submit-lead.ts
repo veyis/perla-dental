@@ -5,7 +5,7 @@ import { renderClinicEmail, renderPatientEmail } from './email'
 import { sendEmail } from './email-sender'
 import { allowLead } from './rate-limit'
 import { normalizePhone } from './schema'
-import { insertLead } from './supabase-leads'
+import { getLeadByConversationId, insertLead, updateLead } from './supabase-leads'
 
 export type SubmitLeadResult =
   | { success: true; leadId: string; degraded?: boolean }
@@ -45,36 +45,64 @@ export async function submitLead(args: {
 
   let leadId = ''
   let dbOk = true
+  let isDuplicate = false
+
   try {
-    const result = await insertLead({
-      conversationId: args.conversationId,
-      fullName: args.input.fullName,
-      phone,
-      email: args.input.email,
-      preferredLanguage: args.input.preferredLanguage,
-      interest: args.input.interest,
-      chronicIllnesses: args.input.chronicIllnesses,
-      summary: args.summary,
-      consentText: args.consentText,
-      consentGivenAt: now,
-      source: args.source,
-      countryCode: args.countryCode,
-      userAgentShort: args.userAgentShort,
-      ipAddress: args.ipAddress,
-      city: args.city,
-      region: args.region,
-      postalCode: args.postalCode,
-      continent: args.continent,
-      timezone: args.timezone,
-      latitude: args.latitude,
-      longitude: args.longitude,
-      referrer: args.referrer,
-      acceptLanguage: args.acceptLanguage,
-    })
-    leadId = result.id
+    const existing = await getLeadByConversationId(args.conversationId)
+    if (existing) {
+      isDuplicate = true
+      leadId = existing.id
+      logger.info(
+        { conversationId: args.conversationId, leadId },
+        'Lead already exists, updating instead of inserting',
+      )
+      await updateLead(leadId, {
+        conversationId: args.conversationId,
+        fullName: args.input.fullName,
+        phone,
+        email: args.input.email,
+        preferredLanguage: args.input.preferredLanguage,
+        interest: args.input.interest,
+        chronicIllnesses: args.input.chronicIllnesses,
+        summary: args.summary,
+        consentText: args.consentText,
+        consentGivenAt: now,
+      })
+    } else {
+      const result = await insertLead({
+        conversationId: args.conversationId,
+        fullName: args.input.fullName,
+        phone,
+        email: args.input.email,
+        preferredLanguage: args.input.preferredLanguage,
+        interest: args.input.interest,
+        chronicIllnesses: args.input.chronicIllnesses,
+        summary: args.summary,
+        consentText: args.consentText,
+        consentGivenAt: now,
+        source: args.source,
+        countryCode: args.countryCode,
+        userAgentShort: args.userAgentShort,
+        ipAddress: args.ipAddress,
+        city: args.city,
+        region: args.region,
+        postalCode: args.postalCode,
+        continent: args.continent,
+        timezone: args.timezone,
+        latitude: args.latitude,
+        longitude: args.longitude,
+        referrer: args.referrer,
+        acceptLanguage: args.acceptLanguage,
+      })
+      leadId = result.id
+    }
   } catch (err) {
     dbOk = false
-    logger.error({ err }, 'supabase lead insert failed; emailing clinic anyway')
+    logger.error({ err }, 'supabase lead operation failed; emailing clinic anyway')
+  }
+
+  if (isDuplicate) {
+    return { success: true, leadId, degraded: !dbOk }
   }
 
   const emailLead = {
@@ -94,7 +122,9 @@ export async function submitLead(args: {
 
   try {
     const fromEmail = requireEnv('LEAD_FROM_EMAIL')
-    await Promise.all([
+    // Fire-and-forget emails to keep tool response time ultra-low.
+    // Errors are logged but do not block the AI agent's flow.
+    Promise.all([
       sendEmail({
         to: requireEnv('LEAD_NOTIFICATION_EMAIL'),
         from: fromEmail,
@@ -108,9 +138,11 @@ export async function submitLead(args: {
         subject: patient.subject,
         text: patient.text,
       }),
-    ])
+    ]).catch((err) => {
+      logger.error({ err, leadId }, 'asynchronous email send failed')
+    })
   } catch (err) {
-    logger.error({ err, leadId }, 'email send failed')
+    logger.error({ err, leadId }, 'email setup failed')
     if (!dbOk) return { success: false, reason: 'failed' }
   }
 

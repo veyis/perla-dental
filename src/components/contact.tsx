@@ -1,7 +1,5 @@
 'use client'
-
-import { motion } from 'framer-motion'
-import { Clock, ExternalLink, Mail, MapPin, Phone } from 'lucide-react'
+import { Clock, ExternalLink, MapPin, Phone } from 'lucide-react'
 
 export function Contact() {
   return (
@@ -61,10 +59,16 @@ export function Contact() {
               </div>
 
               <div className="mt-12 pt-12 border-t flex gap-4">
-                <button className="flex-1 px-8 py-4 bg-primary text-white rounded-2xl font-bold hover:bg-primary-light transition-all">
+                <button
+                  type="button"
+                  className="flex-1 px-8 py-4 bg-primary text-white rounded-2xl font-bold hover:bg-primary-light transition-all"
+                >
                   Book Now
                 </button>
-                <button className="flex-1 px-8 py-4 bg-accent border border-primary/20 text-primary rounded-2xl font-bold hover:bg-white transition-all">
+                <button
+                  type="button"
+                  className="flex-1 px-8 py-4 bg-accent border border-primary/20 text-primary rounded-2xl font-bold hover:bg-white transition-all"
+                >
                   Get Free Quote
                 </button>
               </div>
@@ -75,6 +79,7 @@ export function Contact() {
               <div className="absolute inset-0 opacity-20 pointer-events-none">
                 {/* SVG Pattern for map feeling */}
                 <svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none">
+                  <title>Map Background Pattern</title>
                   <path
                     d="M0,50 Q25,0 50,50 T100,50"
                     fill="none"
@@ -98,7 +103,10 @@ export function Contact() {
                 <p className="text-text-muted mb-8 max-w-sm mx-auto">
                   Combine your treatment with a vacation in Turkey's most beautiful coastal city.
                 </p>
-                <button className="inline-flex items-center gap-2 text-primary font-bold hover:underline">
+                <button
+                  type="button"
+                  className="inline-flex items-center gap-2 text-primary font-bold hover:underline"
+                >
                   Open in Google Maps <ExternalLink className="w-4 h-4" />
                 </button>
               </div>

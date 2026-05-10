@@ -64,7 +64,7 @@ export function About() {
             <ul className="space-y-4 mb-10">
               {highlights.map((item, i) => (
                 <motion.li
-                  key={i}
+                  key={item}
                   initial={{ opacity: 0, y: 10 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
@@ -77,7 +77,10 @@ export function About() {
               ))}
             </ul>
 
-            <button className="px-8 py-4 bg-primary text-white rounded-full font-bold shadow-lg hover:bg-primary-light transition-all">
+            <button
+              type="button"
+              className="px-8 py-4 bg-primary text-white rounded-full font-bold shadow-lg hover:bg-primary-light transition-all"
+            >
               Meet Our Specialists
             </button>
           </motion.div>
