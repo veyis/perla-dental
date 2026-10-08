@@ -44,25 +44,48 @@ export async function getElevenLabsConversations(): Promise<ElevenLabsConversati
   const apiKey = requireEnv('ELEVENLABS_API_KEY')
   const agentId = requireEnv('NEXT_PUBLIC_ELEVENLABS_AGENT_ID')
 
+  // One overall time budget for the whole paginated walk.
   const ac = new AbortController()
-  const timer = setTimeout(() => ac.abort(), 10_000)
+  const timer = setTimeout(() => ac.abort(), 15_000)
 
-  const res = await fetch(`https://api.elevenlabs.io/v1/convai/conversations?agent_id=${agentId}`, {
-    signal: ac.signal,
-    headers: {
-      'xi-api-key': apiKey,
-    },
-    cache: 'no-store', // Always fetch fresh data for the admin dashboard
-  }).finally(() => clearTimeout(timer))
+  const conversations: ElevenLabsConversationListItem[] = []
+  let cursor: string | null = null
+  // Safety bound so a misbehaving cursor can't loop forever (100/page × 50).
+  const MAX_PAGES = 50
 
-  if (!res.ok) {
-    const error = await res.text()
-    console.error('[elevenlabs] Failed to fetch conversations', error)
-    return []
+  try {
+    for (let page = 0; page < MAX_PAGES; page++) {
+      const url = new URL('https://api.elevenlabs.io/v1/convai/conversations')
+      url.searchParams.set('agent_id', agentId)
+      url.searchParams.set('page_size', '100')
+      if (cursor) url.searchParams.set('cursor', cursor)
+
+      const res = await fetch(url, {
+        signal: ac.signal,
+        headers: { 'xi-api-key': apiKey },
+        cache: 'no-store', // Always fetch fresh data for the admin dashboard
+      })
+
+      if (!res.ok) {
+        console.error('[elevenlabs] Failed to fetch conversations', await res.text())
+        break // Return whatever we've collected so far rather than dropping it.
+      }
+
+      const data = (await res.json()) as {
+        conversations?: ElevenLabsConversationListItem[]
+        has_more?: boolean
+        next_cursor?: string | null
+      }
+      if (data.conversations) conversations.push(...data.conversations)
+
+      if (!data.has_more || !data.next_cursor) break
+      cursor = data.next_cursor
+    }
+  } finally {
+    clearTimeout(timer)
   }
 
-  const data = (await res.json()) as { conversations?: ElevenLabsConversationListItem[] }
-  return data.conversations ?? []
+  return conversations
 }
 
 export async function getElevenLabsConversation(

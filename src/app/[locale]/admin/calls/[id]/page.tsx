@@ -85,9 +85,9 @@ export default async function AdminCallDetailPage({
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4 max-h-[600px] overflow-y-auto pr-4">
-              {conversation.transcript?.map((entry, index: number) => (
+              {conversation.transcript?.map((entry) => (
                 <div
-                  key={index}
+                  key={`${entry.role}-${entry.time_in_call_secs}-${entry.message}`}
                   className={`flex gap-3 ${
                     entry.role === 'agent' ? 'flex-row' : 'flex-row-reverse'
                   }`}
@@ -226,6 +226,8 @@ export default async function AdminCallDetailPage({
             </CardHeader>
             <CardContent>
               <div className="flex flex-col gap-4">
+                {/* The complete transcript is displayed above; no timed caption file is provided by the call API. */}
+                {/* biome-ignore lint/a11y/useMediaCaption: The call API does not provide synchronized caption timestamps. */}
                 <audio controls className="w-full" src={`/api/admin/calls/${id}/audio`}>
                   Your browser does not support the audio element.
                 </audio>
