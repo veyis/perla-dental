@@ -1,12 +1,14 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-const { getLeadByConversationId, insertLead, updateLead, sendEmail, allowLead } = vi.hoisted(() => ({
-  getLeadByConversationId: vi.fn(),
-  insertLead: vi.fn(),
-  updateLead: vi.fn(),
-  sendEmail: vi.fn(),
-  allowLead: vi.fn(),
-}))
+const { getLeadByConversationId, insertLead, updateLead, sendEmail, allowLead } = vi.hoisted(
+  () => ({
+    getLeadByConversationId: vi.fn(),
+    insertLead: vi.fn(),
+    updateLead: vi.fn(),
+    sendEmail: vi.fn(),
+    allowLead: vi.fn(),
+  }),
+)
 
 vi.mock('@/lib/leads/supabase-leads', () => ({ getLeadByConversationId, insertLead, updateLead }))
 vi.mock('@/lib/leads/rate-limit', () => ({ allowLead }))
